@@ -81,6 +81,7 @@ jobs:
       id-token: write
     uses: ./.github/workflows/_scan-pins.yaml
     with:
+      pins: fluxcd/ghcr.io/images/%VERSION%/upstream-alpine.yaml
       version-file: fluxcd/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
