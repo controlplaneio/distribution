@@ -13,10 +13,10 @@ images:
     digest: sha256:5aec8746b1ce9ef93b196b357faae758549f5efe449c6e327f3a5ad62cd4c291
   - name: ghcr.io/controlplaneio-fluxcd/distroless-fips/image-reflector-controller
     newTag: v1.1.1
-    digest: sha256:78df6b036092471926a0bfea8120d114dc2c15ed36323b66b823b121b86e30fe
+    digest: sha256:7ba01913c67b2cc144281d17c29a372a557a02797898a35ad61d1d3e5650228a
   - name: ghcr.io/controlplaneio-fluxcd/distroless-fips/image-automation-controller
     newTag: v1.1.1
     digest: sha256:7fd81a7043b522300e24bbd0647f02e39f939982a33e49af8105b6e8e59ea72c
   - name: ghcr.io/controlplaneio-fluxcd/distroless-fips/source-watcher
     newTag: v2.1.1
-    digest: sha256:0181725677fc3240c4415891b04e51a3a86c875e97158862c11d7737d37cd7b9
+    digest: sha256:11a923d19b0535f30783ae052bcf126b01b846f5c2a6f23fcaef0659f2e9ff4a

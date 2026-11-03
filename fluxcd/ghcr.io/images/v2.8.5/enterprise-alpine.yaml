@@ -13,10 +13,10 @@ images:
     digest: sha256:106bd9a78a143620f26745a92c2410208524c90537adabf8d3a39ee3b5135456
   - name: ghcr.io/controlplaneio-fluxcd/alpine/image-reflector-controller
     newTag: v1.1.1
-    digest: sha256:3eceeb955b586a356b6798a097ffa5ea84fa9683427894a840895d77b3c22d9f
+    digest: sha256:29059acbe09b43e61f981fac4742338a1fd7efc862e491ac392f599b1fd1093a
   - name: ghcr.io/controlplaneio-fluxcd/alpine/image-automation-controller
     newTag: v1.1.1
     digest: sha256:a3cb0f5b5df1d79169a4fbab5fae1f093ae6d1651f10c44a32d734c8da6b659e
   - name: ghcr.io/controlplaneio-fluxcd/alpine/source-watcher
     newTag: v2.1.1
-    digest: sha256:4d4b079658e500d69aa75d678a96de1ccea120950f90311c09f541bc29524282
+    digest: sha256:dd0f6b046158b3245bcfecef2f8d5dea50e9bd81f000525402be8e7880b731d9
