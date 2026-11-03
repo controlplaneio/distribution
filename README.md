@@ -1,8 +1,8 @@
 # ControlPlane Enterprise Distribution
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
-[![Cosign](https://img.shields.io/badge/Cosign-signed-2f855a)](https://docs.sigstore.dev/cosign/verifying/verify/)
-[![SBOM](https://img.shields.io/badge/SBOM-attached-2f855a)](https://docs.cpar.dev)
+<a href="https://docs.sigstore.dev/cosign/verifying/verify/"><img alt="Sigstore signed" src="https://raw.githubusercontent.com/sigstore/community/3c2d8e95d5bcc3e3b80c671a978906929d296f2c/artwork/badge/sigstore_codesigned_purple.png" height="20"></a>
+<a href="https://cyclonedx.org/"><img alt="CycloneDX SBOM" src="https://raw.githubusercontent.com/CycloneDX/cyclonedx.org-archived/bb7d4608bf19a5c62e4e5cfd2415de238e3cb15a/about/branding/cyclonedx-logo-symbol.svg" height="20"></a>
 [![Provenance](https://img.shields.io/badge/Provenance-attested-2f855a)](https://slsa.dev)
 [![Hardened](https://img.shields.io/badge/Images-hardened-2f855a)](https://control-plane.io)
 [![FIPS](https://img.shields.io/badge/FIPS-enabled-2f855a)](https://go.dev/doc/security/fips140)
@@ -18,7 +18,7 @@ listed below.
 > For access to the ControlPlane Artifact Registry,
 > see [docs](https://docs.cpar.dev).
 
-| Directory | Distribution | Version | Scan | License scan |
+| Distribution | Product | Version | Vulnerability Scan | License scan |
 |---|---|---|---|---|
 | [`fluxcd/`](fluxcd/) | Enterprise for Flux CD | [![Version](https://img.shields.io/badge/version-v2.10.0-blue)](fluxcd/) | [![Distroless scan](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-distroless.yaml/badge.svg)](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-distroless.yaml) | [![License scan](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-license.yaml/badge.svg)](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-license.yaml) |
 | [`openbao/`](openbao/) | Enterprise for OpenBao | [![Version](https://img.shields.io/badge/version-v2.7.2-blue)](openbao/) | [![Distroless scan](https://github.com/controlplaneio/distribution/actions/workflows/scan-openbao-distroless.yaml/badge.svg)](https://github.com/controlplaneio/distribution/actions/workflows/scan-openbao-distroless.yaml) | — |
