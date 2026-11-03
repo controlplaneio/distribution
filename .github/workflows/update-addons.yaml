@@ -141,4 +141,4 @@ jobs:
             Refresh pins for the **${{ matrix.entry.addon }}** addon at
             `${{ matrix.entry.version }}` in both `ghcr.io` and `cpar.dev`.
           labels: |
-            area/addons
+            area/updates

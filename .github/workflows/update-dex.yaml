@@ -107,4 +107,4 @@ jobs:
             Refresh Dex image pins for `${{ matrix.entry.version }}` in both
             `ghcr.io` and `cpar.dev`.
           labels: |
-            area/dex
+            area/updates

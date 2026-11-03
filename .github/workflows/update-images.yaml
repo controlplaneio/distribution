@@ -101,4 +101,4 @@ jobs:
             Update `${{ inputs.product }}` image digests for
             `${{ matrix.version }}` in both `ghcr.io` and `cpar.dev`.
           labels: |
-            area/images
+            area/updates
