@@ -38,7 +38,7 @@ jobs:
         dex/cpar.dev/images/%VERSION%/enterprise-distroless-fips.yaml
       version-file: dex/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
-      minor-count: '3'
+      minor-count: '1'
       ignore-prefix: dex
       alert: Dex Enterprise
     secrets:
@@ -58,7 +58,7 @@ jobs:
       repository: dexidp/dex
       version-file: dex/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
-      minor-count: '3'
+      minor-count: '1'
       alert: Dex License
     secrets:
       ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}

@@ -63,7 +63,7 @@ jobs:
         fluxcd/cpar.dev/addons/flux-mcp-enterprise/images/%VERSION%/enterprise-*.yaml
       version-dir: fluxcd/ghcr.io/addons/flux-mcp-enterprise/images
       version: ${{ inputs.version }}
-      minor-count: '3'
+      minor-count: '1'
       ignore-prefix: fluxcd
       release-ignore: false
       alert: Flux MCP Enterprise
@@ -84,7 +84,7 @@ jobs:
       pins: fluxcd/ghcr.io/images/%VERSION%/upstream-alpine.yaml
       version-file: fluxcd/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
-      minor-count: '3'
+      minor-count: '1'
       ignore-prefix: fluxcd
       check-scan-error: false
       alert: Flux Upstream
