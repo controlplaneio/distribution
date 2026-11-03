@@ -1,0 +1,22 @@
+images:
+  - name: cpar.dev/fluxcd/distroless/source-controller
+    newTag: v1.8.3
+    digest: sha256:821a41709c6b20ea22c716482293b4505572133bb71c73bda246b024e526a3c3
+  - name: cpar.dev/fluxcd/distroless/kustomize-controller
+    newTag: v1.8.4
+    digest: sha256:13855d85ecf0d9733dd478e06787a748db8d94f13b67796f9eb0aefc4f504dac
+  - name: cpar.dev/fluxcd/distroless/helm-controller
+    newTag: v1.5.4
+    digest: sha256:4f49ce58c9ae771280395eeae981368b836bb373e8063ec826fc8aaa222e2570
+  - name: cpar.dev/fluxcd/distroless/notification-controller
+    newTag: v1.8.4
+    digest: sha256:798ab57bebd3f0457c3af80ddde3e4afa942420a88dd3d79e315ba38dadef1ba
+  - name: cpar.dev/fluxcd/distroless/image-reflector-controller
+    newTag: v1.1.1
+    digest: sha256:235f6153c088c4f1be20ca7cd0a95802376ce0ee482ff813fe8ce10989360fa2
+  - name: cpar.dev/fluxcd/distroless/image-automation-controller
+    newTag: v1.1.2
+    digest: sha256:b05ec19f06986038908665f49e7a68ebb8eeaf825f4e4dfa629319eb36572a01
+  - name: cpar.dev/fluxcd/distroless/source-watcher
+    newTag: v2.1.1
+    digest: sha256:222e68220a06984faf996c34c0a4fe08e0beceea9fee0e00a9d50d7275ee9f76
