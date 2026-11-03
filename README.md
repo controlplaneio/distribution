@@ -18,7 +18,7 @@ listed below.
 > For access to the ControlPlane Artifact Registry,
 > see [docs](https://docs.cpar.dev).
 
-| Distribution | Product | Version | Vulnerability Scan | License scan |
+| Directory | Distribution | Version | Vulnerability Scan | License scan |
 |---|---|---|---|---|
 | [`fluxcd/`](fluxcd/) | Enterprise for Flux CD | [![Version](https://img.shields.io/badge/version-v2.10.0-blue)](fluxcd/) | [![Flux distroless](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-fluxcd-distroless.yaml?label=Flux%20distroless&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-distroless.yaml) | [![Flux license](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-fluxcd-license.yaml?label=Flux&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-license.yaml) |
 | [`openbao/`](openbao/) | Enterprise for OpenBao | [![Version](https://img.shields.io/badge/version-v2.7.2-blue)](openbao/) | [![OpenBao distroless](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-openbao-distroless.yaml?label=OpenBao%20distroless&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-openbao-distroless.yaml) | [![OpenBao license](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-openbao-license.yaml?label=OpenBao&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-openbao-license.yaml) |
