@@ -16,6 +16,11 @@ on:
         description: 'upstream tag to scan'
         required: true
         type: string
+      license-confidence-level:
+        description: 'minimum Trivy license classifier confidence for the gate'
+        required: false
+        type: string
+        default: '0.9'
 
 jobs:
   trivy:
@@ -46,4 +51,6 @@ jobs:
           trivy fs -q --format table --scanners license --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL ./go.mod
       - name: License check
         run: |
-          trivy fs -q --format table --scanners license --severity UNKNOWN,HIGH,CRITICAL ./go.mod --exit-code 1
+          trivy fs -q --format table --scanners license \
+            --license-confidence-level "${{ inputs.license-confidence-level }}" \
+            --severity UNKNOWN,HIGH,CRITICAL ./go.mod --exit-code 1

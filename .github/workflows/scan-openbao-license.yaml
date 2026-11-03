@@ -44,3 +44,9 @@ jobs:
       product: OpenBao
       repository: openbao/openbao
       version: ${{ needs.version.outputs.version }}
+      # github.com/hashicorp/vic ships an aggregate open_source_licenses
+      # notice; Trivy attributes every bundled license in it to the module
+      # at <1.0 confidence. Gate only exact classifier matches so those
+      # false positives don't fail the check. The report step still uses the
+      # default confidence and shows the full list.
+      license-confidence-level: '1.0'
