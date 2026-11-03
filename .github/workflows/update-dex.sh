@@ -111,6 +111,16 @@ case "$CHART_VERSION" in
     ;;
 esac
 
+# Advance the pinned version when onboarding a newer image. Updating an older
+# version must not move VERSION backwards.
+if [ "$DEX_VERSION" != "skip" ]; then
+  current="$(cat "${GHCR_DIR}/images/VERSION" 2>/dev/null || true)"
+  newest="$(printf '%s\n%s\n' "$current" "$DEX_VERSION" | sort -V | tail -n1)"
+  if [ -z "$current" ] || [ "$newest" = "$DEX_VERSION" ]; then
+    printf '%s\n' "$DEX_VERSION" >"${GHCR_DIR}/images/VERSION"
+  fi
+fi
+
 if [ -f "${GHCR_DIR}/images/VERSION" ]; then
   mkdir -p "${CPAR_DIR}/images"
   cp "${GHCR_DIR}/images/VERSION" "${CPAR_DIR}/images/VERSION"
