@@ -30,6 +30,7 @@ jobs:
     if: github.event_name != 'push' && (inputs.scan == '' || inputs.scan == 'all' || inputs.scan == 'product')
     permissions:
       contents: read
+      actions: read
       id-token: write
     uses: ./.github/workflows/_scan-pins.yaml
     with:
@@ -53,6 +54,7 @@ jobs:
     if: github.event_name == 'push' || inputs.scan == '' || inputs.scan == 'all' || inputs.scan == 'license'
     permissions:
       contents: read
+      actions: read
     uses: ./.github/workflows/_scan-license.yaml
     with:
       product: OpenBao
