@@ -1,0 +1,24 @@
+name: Vulnerability scan - Dex
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '00 4 * * 1-5'
+
+jobs:
+  scan:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/_scan-pins.yaml
+    with:
+      pins: >-
+        dex/ghcr.io/images/%VERSION%/enterprise-distroless-fips.yaml
+        dex/cpar.dev/images/%VERSION%/enterprise-distroless-fips.yaml
+      version-file: dex/ghcr.io/images/VERSION
+      ignore-prefix: dex
+      alert: Dex Enterprise
+    secrets:
+      pull-token: ${{ secrets.GHCR_READONLY }}
+      ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
+      ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+      ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}

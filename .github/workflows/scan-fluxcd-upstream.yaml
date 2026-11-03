@@ -1,0 +1,23 @@
+name: Vulnerability scan - Flux Upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '00 3 * * 1-5'
+
+jobs:
+  scan:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/_scan-pins.yaml
+    with:
+      pins: fluxcd/ghcr.io/images/%VERSION%/upstream-alpine.yaml
+      version-file: fluxcd/ghcr.io/images/VERSION
+      ignore-prefix: fluxcd
+      check-scan-error: false
+      alert: Flux Upstream
+    secrets:
+      pull-token: ${{ secrets.GHCR_READONLY }}
+      ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
+      ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+      ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}

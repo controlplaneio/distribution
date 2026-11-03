@@ -1,22 +1,23 @@
-# Refresh the per-variant OpenBao image digest pins under
-# images/<version>/. Dispatch after a build round publishes new digests
-# in ghcr.io/controlplaneio/<variant>/openbao:<version>.
 name: Update images
 
 on:
   workflow_dispatch:
     inputs:
+      product:
+        description: 'Distribution product'
+        required: true
+        type: choice
+        default: fluxcd
+        options:
+          - fluxcd
+          - openbao
       version:
-        description: 'OpenBao version, e.g. v2.6.2 (empty = latest release tag)'
+        description: 'Product version (empty = VERSION file, all = backfill every pinned version)'
         required: false
         type: string
 
 permissions:
   contents: read
-
-env:
-  REGISTRY: ghcr.io/controlplaneio
-  DISTRIBUTION: enterprise
 
 jobs:
   generate:
@@ -34,32 +35,48 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_READONLY }}
+      - name: Login to ControlPlane Artifact Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: cpar.dev
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Flux
+        if: inputs.product == 'fluxcd' && inputs.version != '' && inputs.version != 'all'
+        uses: fluxcd/flux2/action@dd233c4fadef306a62b7893204f8e3817fecc2b2 # v2.9.5
+        with:
+          version: ${{ inputs.version }}
+      - name: Setup Flux (latest)
+        if: inputs.product == 'fluxcd' && (inputs.version == '' || inputs.version == 'all')
+        uses: fluxcd/flux2/action@dd233c4fadef306a62b7893204f8e3817fecc2b2 # v2.9.5
       - name: Resolve version
         id: version
         shell: bash
+        env:
+          PRODUCT: ${{ inputs.product }}
+          VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          version="${{ inputs.version }}"
-          if [ -z "$version" ]; then
-            version="$(cat images/VERSION)"
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-      - name: Enterprise images
+          version="${VERSION:-$(cat "${PRODUCT}/ghcr.io/images/VERSION")}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+      - name: Update image pins
         shell: bash
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: bash .github/workflows/update-images.sh
+          PRODUCT: ${{ inputs.product }}
+          VERSION: ${{ inputs.version }}
+        run: .github/workflows/update-images.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
-            Update images for OpenBao ${{ steps.version.outputs.version }}
+            Update ${{ inputs.product }} images for ${{ steps.version.outputs.version }}
           committer: GitHub <noreply@github.com>
           signoff: true
-          branch: update-images-${{ steps.version.outputs.version }}
-          title: Update images for OpenBao ${{ steps.version.outputs.version }}
+          branch: update-images-${{ inputs.product }}-${{ steps.version.outputs.version }}
+          title: Update ${{ inputs.product }} images for ${{ steps.version.outputs.version }}
           body: |
-            Update image digests for OpenBao ${{ steps.version.outputs.version }}.
+            Update `${{ inputs.product }}` image digests for
+            `${{ steps.version.outputs.version }}` in both `ghcr.io` and `cpar.dev`.
           labels: |
             area/images
