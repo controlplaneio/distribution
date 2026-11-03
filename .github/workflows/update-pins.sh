@@ -4,7 +4,7 @@
 # Called by .github/workflows/update-pins.yaml.
 #
 # Required env:
-#   TARGET  - fluxcd, openbao, dex, or mcp
+#   TARGET  - fluxcd, openbao, dex, or flux-mcp-enterprise
 #   VERSION - target image version (e.g. v2.10.0 / v2.46.1 / v0.4.4)
 # Optional env:
 #   CHART_VERSION - chart version to update. "skip" updates images only.
@@ -213,9 +213,9 @@ case "$TARGET" in
     esac
     ;;
 
-  mcp)
-    GHCR_ADDON_DIR="${ROOT_DIR}/fluxcd/ghcr.io/addons/mcp"
-    CPAR_ADDON_DIR="${ROOT_DIR}/fluxcd/cpar.dev/addons/mcp"
+  flux-mcp-enterprise)
+    GHCR_ADDON_DIR="${ROOT_DIR}/fluxcd/ghcr.io/addons/flux-mcp-enterprise"
+    CPAR_ADDON_DIR="${ROOT_DIR}/fluxcd/cpar.dev/addons/flux-mcp-enterprise"
     ghcr_image_repo="ghcr.io/controlplaneio-fluxcd/flux-mcp-enterprise"
     cpar_image_repo="cpar.dev/fluxcd/distroless-fips/flux-mcp-enterprise"
 
@@ -231,7 +231,7 @@ case "$TARGET" in
     ghcr_chart_repo="ghcr.io/controlplaneio-fluxcd/charts/flux-mcp-enterprise"
     cpar_chart_repo="cpar.dev/fluxcd/charts/flux-mcp-enterprise"
     if [ "$CHART_VERSION" != "skip" ]; then
-      write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" mcp \
+      write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" flux-mcp-enterprise \
         "${GHCR_ADDON_DIR}/charts" "${CPAR_ADDON_DIR}/charts" \
         "$CHART_VERSION"
     fi

@@ -1,4 +1,4 @@
-name: Vulnerability scan - Dex Distroless
+name: Vulnerability scan - Dex
 
 on:
   workflow_dispatch:
@@ -16,6 +16,7 @@ jobs:
         dex/ghcr.io/images/%VERSION%/enterprise-distroless-fips.yaml
         dex/cpar.dev/images/%VERSION%/enterprise-distroless-fips.yaml
       version-file: dex/ghcr.io/images/VERSION
+      minor-count: '3'
       ignore-prefix: dex
       alert: Dex Enterprise
     secrets:

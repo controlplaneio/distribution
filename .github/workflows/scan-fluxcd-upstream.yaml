@@ -14,6 +14,7 @@ jobs:
     with:
       pins: fluxcd/ghcr.io/images/%VERSION%/upstream-alpine.yaml
       version-file: fluxcd/ghcr.io/images/VERSION
+      minor-count: '3'
       ignore-prefix: fluxcd
       check-scan-error: false
       alert: Flux Upstream

@@ -1,21 +1,32 @@
-# Reusable license scan for one distribution's upstream Go module.
+# Reusable license scan for a distribution's upstream Go module.
 name: scan license
 
 on:
   workflow_call:
     inputs:
       product:
-        description: 'product name, used in step names'
+        description: 'product name, used in job names'
         required: true
         type: string
       repository:
         description: 'upstream repository, e.g. openbao/openbao'
         required: true
         type: string
-      version:
-        description: 'upstream tag to scan'
-        required: true
+      version-file:
+        description: 'file containing the product version (e.g. fluxcd/ghcr.io/images/VERSION)'
+        required: false
         type: string
+        default: ''
+      version-dir:
+        description: 'directory containing version dirs; used when version-file is absent'
+        required: false
+        type: string
+        default: ''
+      minor-count:
+        description: 'number of latest minor versions to scan (0 = latest only)'
+        required: false
+        type: string
+        default: '3'
       license-confidence-level:
         description: 'minimum Trivy license classifier confidence for the gate'
         required: false
@@ -23,16 +34,77 @@ on:
         default: '0.9'
 
 jobs:
-  trivy:
+  discover:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      versions: ${{ steps.find.outputs.versions }}
     steps:
-      - name: Checkout ${{ inputs.product }}
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Resolve versions
+        id: find
+        shell: bash
+        env:
+          VERSION_FILE: ${{ inputs.version-file }}
+          VERSION_DIR: ${{ inputs.version-dir }}
+          MINOR_COUNT: ${{ inputs.minor-count }}
+        run: |
+          set -euo pipefail
+          if [ -n "$VERSION_DIR" ]; then
+            dir="$VERSION_DIR"
+          elif [ -n "$VERSION_FILE" ]; then
+            dir="$(dirname "$VERSION_FILE")"
+          else
+            echo "one of version-file or version-dir is required" >&2
+            exit 1
+          fi
+
+          all_versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
+          [ -n "$all_versions" ] || { echo "no versions under $dir" >&2; exit 1; }
+
+          count="${MINOR_COUNT:-3}"
+          if [ "$count" -le 0 ]; then
+            if [ -n "$VERSION_FILE" ]; then
+              selected="$(cat "$VERSION_FILE")"
+            else
+              selected="$(printf '%s\n' "$all_versions" | tail -n1)"
+            fi
+          else
+            minors="$(printf '%s\n' "$all_versions" | sed 's/^v//' \
+              | cut -d. -f1,2 | sort -Vu | tail -n "$count")"
+            selected=""
+            for minor in $minors; do
+              version="$(printf '%s\n' "$all_versions" \
+                | grep -E "^v${minor//./\\.}\." | sort -V | tail -n1 || true)"
+              [ -n "$version" ] && selected="${selected}${version}"$'\n'
+            done
+          fi
+          [ -n "$selected" ] || { echo "no matching versions under $dir" >&2; exit 1; }
+
+          json="$(printf '%s\n' "$selected" \
+            | jq -cR -s 'split("\n") | map(select(length > 0))')"
+          echo "versions=${json}" >> "$GITHUB_OUTPUT"
+          echo "$json" | jq .
+
+  license:
+    needs: discover
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.discover.outputs.versions) }}
+    name: ${{ inputs.product }} ${{ matrix.version }}
+    steps:
+      - name: Checkout ${{ inputs.product }} ${{ matrix.version }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ inputs.repository }}
-          ref: ${{ inputs.version }}
+          ref: ${{ matrix.version }}
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:

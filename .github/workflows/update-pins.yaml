@@ -12,7 +12,7 @@ on:
           - fluxcd
           - openbao
           - dex
-          - mcp
+          - flux-mcp-enterprise
       version:
         description: 'Image version (empty = VERSION file / latest pin, all = every pinned version)'
         required: false
@@ -48,7 +48,7 @@ jobs:
             fluxcd) images_dir="fluxcd/ghcr.io/images" ;;
             openbao) images_dir="openbao/ghcr.io/images" ;;
             dex) images_dir="dex/ghcr.io/images" ;;
-            mcp) images_dir="fluxcd/ghcr.io/addons/mcp/images" ;;
+            flux-mcp-enterprise) images_dir="fluxcd/ghcr.io/addons/flux-mcp-enterprise/images" ;;
             *) echo "unknown target: $TARGET" >&2; exit 1 ;;
           esac
 
@@ -71,9 +71,9 @@ jobs:
           for v in $versions; do
             chart="skip"
             case "$TARGET" in
-              mcp)
+              flux-mcp-enterprise)
                 if [ -z "$CHART_VERSION" ] || [ "$CHART_VERSION" = "all" ]; then
-                  # mcp chart versions match image versions without the v prefix.
+                  # Chart versions match image versions without the v prefix.
                   chart="${v#v}"
                 elif [ "$VERSION" = "all" ] && [ "$v" != "$latest" ]; then
                   chart="skip"

@@ -1,9 +1,9 @@
-# Reusable vulnerability scan for a set of image pin files.
+# Reusable vulnerability scan for image pin files.
 #
-# Resolves the version from a VERSION file (optionally N minors back),
-# expands the given pin globs, and scans every image referenced by the
-# resulting manifests. Missing pin files are ignored so a scan can cover
-# both registries once cpar.dev pins have been backfilled.
+# Expands the given pin globs for the latest patch release of each of the
+# last N minor versions, then scans every image referenced by the resulting
+# manifests. Missing pin files are ignored so a scan can cover both
+# registries once cpar.dev pins have been backfilled.
 name: scan pins
 
 on:
@@ -18,11 +18,16 @@ on:
         required: false
         type: string
         default: ''
-      minor-version-offset:
-        description: 'if non-zero, scan the latest minor version minus this offset'
+      version-dir:
+        description: 'directory containing version dirs; used when version-file is absent'
         required: false
         type: string
-        default: '0'
+        default: ''
+      minor-count:
+        description: 'number of latest minor versions to scan (0 = latest only)'
+        required: false
+        type: string
+        default: '3'
       severity:
         description: 'vulnerability severity'
         required: false
@@ -66,8 +71,6 @@ jobs:
       contents: read
     outputs:
       targets: ${{ steps.find.outputs.targets }}
-      version: ${{ steps.find.outputs.version }}
-      version-without-patch: ${{ steps.find.outputs.version-without-patch }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -77,49 +80,68 @@ jobs:
         env:
           PINS: ${{ inputs.pins }}
           VERSION_FILE: ${{ inputs.version-file }}
-          MINOR_VERSION_OFFSET: ${{ inputs.minor-version-offset }}
+          VERSION_DIR: ${{ inputs.version-dir }}
+          MINOR_COUNT: ${{ inputs.minor-count }}
         run: |
           set -euo pipefail
-          version=""
-          if [ -n "$VERSION_FILE" ]; then
-            version="$(cat "$VERSION_FILE")"
-            offset="${MINOR_VERSION_OFFSET:-0}"
-            if [ "$offset" -gt 0 ]; then
-              dir="$(dirname "$VERSION_FILE")"
-              versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-                | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)"
-              latest_minor="$(printf '%s\n' "$versions" | sed 's/^v//' \
-                | cut -d. -f1,2 | sort -V | tail -n1)"
-              [ -n "$latest_minor" ] || { echo "no versions under $dir" >&2; exit 1; }
-              target_minor="$(echo "$latest_minor" \
-                | awk -F. -v off="$offset" '{print $1"."($2-off)}')"
-              version="$(printf '%s\n' "$versions" \
-                | grep -E "^v${target_minor}\." | sort -V | tail -n1 || true)"
-              [ -n "$version" ] || { echo "no release for minor offset $offset" >&2; exit 1; }
-            fi
+          if [ -n "$VERSION_DIR" ]; then
+            dir="$VERSION_DIR"
+          elif [ -n "$VERSION_FILE" ]; then
+            dir="$(dirname "$VERSION_FILE")"
+          else
+            echo "one of version-file or version-dir is required" >&2
+            exit 1
           fi
 
+          all_versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
+          [ -n "$all_versions" ] || { echo "no versions under $dir" >&2; exit 1; }
+
+          count="${MINOR_COUNT:-3}"
+          if [ "$count" -le 0 ]; then
+            if [ -n "$VERSION_FILE" ]; then
+              selected="$(cat "$VERSION_FILE")"
+            else
+              selected="$(printf '%s\n' "$all_versions" | tail -n1)"
+            fi
+          else
+            minors="$(printf '%s\n' "$all_versions" | sed 's/^v//' \
+              | cut -d. -f1,2 | sort -Vu | tail -n "$count")"
+            selected=""
+            for minor in $minors; do
+              version="$(printf '%s\n' "$all_versions" \
+                | grep -E "^v${minor//./\\.}\." | sort -V | tail -n1 || true)"
+              [ -n "$version" ] && selected="${selected}${version}"$'\n'
+            done
+          fi
+          [ -n "$selected" ] || { echo "no matching versions under $dir" >&2; exit 1; }
+          echo "selected versions:" >&2
+          printf '%s\n' "$selected" >&2
+
           targets=""
-          for pattern in $PINS; do
-            pattern="${pattern//%VERSION%/$version}"
-            for file in $pattern; do
-              [ -f "$file" ] || continue
-              while IFS= read -r image; do
-                [ -n "$image" ] || continue
-                targets="${targets}${image}"$'\n'
-              done < <(awk '
-                /^[[:space:]]*- name:/ { name=$3 }
-                /^[[:space:]]*newTag:/ { if (name != "") print name ":" $2 }
-              ' "$file")
+          for version in $selected; do
+            for pattern in $PINS; do
+              pattern="${pattern//%VERSION%/$version}"
+              for file in $pattern; do
+                [ -f "$file" ] || continue
+                while IFS= read -r image; do
+                  [ -n "$image" ] || continue
+                  targets="${targets}${image}|${version}"$'\n'
+                done < <(awk '
+                  /^[[:space:]]*- name:/ { name=$3 }
+                  /^[[:space:]]*newTag:/ { if (name != "") print name ":" $2 }
+                ' "$file")
+              done
             done
           done
 
           unique="$(printf '%s' "$targets" | sort -u)"
-          json="$(printf '%s\n' "$unique" \
-            | jq -cR -s 'split("\n") | map(select(length > 0)) | map({image: .})')"
+          json="$(printf '%s\n' "$unique" | jq -cR -s '
+            split("\n")
+            | map(select(length > 0))
+            | map(split("|") | {image: .[0], version: .[1]})
+          ')"
           echo "targets=${json}" >> "$GITHUB_OUTPUT"
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "version-without-patch=v$(echo "${version#v}" | cut -d. -f1,2)" >> "$GITHUB_OUTPUT"
           echo "$json" | jq .
 
   scan:
@@ -152,7 +174,7 @@ jobs:
         shell: bash
         env:
           PREFIX: ${{ inputs.ignore-prefix }}
-          VERSION: ${{ needs.discover.outputs.version }}
+          VERSION: ${{ matrix.target.version }}
           RELEASE_IGNORE: ${{ inputs.release-ignore }}
         run: |
           set -euo pipefail
@@ -188,6 +210,7 @@ jobs:
         shell: bash
         run: |
           echo "image: ${{ matrix.target.image }}"
+          echo "version: ${{ matrix.target.version }}"
           echo "trivy: ${{ steps.trivy.outcome }}"
       - name: Check result
         if: inputs.check-scan-error && steps.trivy.outcome == 'failure'
