@@ -1,6 +1,12 @@
 # ControlPlane Enterprise Distribution
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![Cosign](https://img.shields.io/badge/signed%20with-cosign-2f855a)](https://docs.sigstore.dev/cosign/verifying/verify/)
+[![SBOM](https://img.shields.io/badge/SBOM-attached-2f855a)](https://docs.cpar.dev)
+[![Provenance](https://img.shields.io/badge/provenance-attested-2f855a)](https://slsa.dev)
+[![Hardened](https://img.shields.io/badge/images-hardened-2f855a)](https://control-plane.io)
+[![FIPS](https://img.shields.io/badge/FIPS-enabled%20Go%20builds-blue)](https://go.dev/doc/security/fips140)
+[![Multi-arch](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64-blue)](https://docs.cpar.dev)
 
 This repository contains the OCI artifact digests for
 ControlPlane's enterprise distributions, including
