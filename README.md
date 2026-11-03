@@ -1,36 +1,33 @@
-# Enterprise Distribution for OpenBao
+# ControlPlane Enterprise Distributions
 
-[![Vulnerability scan - UBI](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-ubi.yaml/badge.svg)](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-ubi.yaml)
-[![Vulnerability scan - Distroless](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-distroless.yaml/badge.svg)](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-distroless.yaml)
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://control-plane.io/enterprise-for-openbao)
+This repository consolidates the ControlPlane enterprise distributions and the
+artifact pins that describe what we ship to customers.
 
-[ControlPlane Enterprise for OpenBao](https://control-plane.io/enterprise-for-openbao)
-is a comprehensive solution for organizations seeking
-to adopt open source secrets management with enterprise-grade assurance.
+Each distribution lives in its own top-level directory:
 
-Built on top of the [OpenSSF](https://openssf.org) OpenBao project,
-the ControlPlane distribution provides a secure, scalable, and enterprise-ready platform
-for managing secrets, machine identities, and encryption keys across
-multi-tenant Kubernetes clusters and beyond.
+| Distribution | Description |
+|---|---|
+| [`fluxcd/`](fluxcd/) | ControlPlane Enterprise for Flux CD |
+| [`openbao/`](openbao/) | ControlPlane Enterprise for OpenBao |
+| [`dex/`](dex/) | ControlPlane Enterprise for Dex |
 
-The ControlPlane distribution is offered on a
-[yearly subscription basis](https://control-plane.io/enterprise-for-openbao) and includes
-enterprise-grade support services for running OpenBao in production.
+## Registry layout
 
-> [!TIP]
-> [Connect with us](https://control-plane.io/contact/) to explore how the enterprise
-> distribution aligns with your unique requirements. Together, we'll develop and review a plan
-> tailored to your challenges, goals, and budget.
+Products that publish through both registries keep their pins under a registry
+directory:
 
-## Documentation
+```text
+<product>/
+  ghcr.io/   # deprecated legacy registry
+  cpar.dev/  # ControlPlane Artifact Registry (main distribution channel)
+```
 
-ControlPlane offers a seamless migration path from HashiCorp Vault to the enterprise
-distribution with minimal disruption to secrets availability. The hardened container
-images provided by ControlPlane are fully API compatible with upstream OpenBao.
+See [`cpar.dev`](https://docs.cpar.dev) for the ControlPlane Artifact Registry
+documentation. Customers still pulling from `ghcr.io` should contact us to
+migrate to `cpar.dev`.
 
-For more information, see the following documentation:
+## Updating pins
 
-- [Enterprise Distribution Overview](https://control-plane.io/enterprise-for-openbao)
-- [Why We Support OpenBao](https://control-plane.io/posts/why-we-support-openbao)
-- [HashiCorp Vault Exit Guide](https://control-plane.io/posts/vault-exit-guide)
-- [Upstream OpenBao Documentation](https://openbao.org/docs/)
+The `Update images`, `Update addons`, and `Update Dex` workflows refresh pins in
+both registries in a single pull request. Set the version input to `all` to
+backfill every version already pinned under `ghcr.io` into `cpar.dev`.

@@ -1,0 +1,225 @@
+# Reusable vulnerability scan for a set of image pin files.
+#
+# Resolves the version from a VERSION file (optionally N minors back),
+# expands the given pin globs, and scans every image referenced by the
+# resulting manifests. Missing pin files are ignored so a scan can cover
+# both registries once cpar.dev pins have been backfilled.
+name: scan pins
+
+on:
+  workflow_call:
+    inputs:
+      pins:
+        description: 'space-separated pin file paths or globs; %VERSION% is replaced'
+        required: true
+        type: string
+      version-file:
+        description: 'file containing the product version (e.g. fluxcd/ghcr.io/images/VERSION)'
+        required: false
+        type: string
+        default: ''
+      minor-version-offset:
+        description: 'if non-zero, scan the latest minor version minus this offset'
+        required: false
+        type: string
+        default: '0'
+      severity:
+        description: 'vulnerability severity'
+        required: false
+        type: string
+        default: 'CRITICAL,HIGH,MEDIUM,LOW'
+      check-scan-error:
+        description: 'fail the job when the scan finds vulnerabilities'
+        required: false
+        type: boolean
+        default: true
+      ignore-prefix:
+        description: 'product directory for .trivyignore and releases/release-<minor>.trivyignore'
+        required: false
+        type: string
+        default: ''
+      release-ignore:
+        description: 'also apply <ignore-prefix>/releases/release-<minor>.trivyignore'
+        required: false
+        type: boolean
+        default: true
+      alert:
+        description: 'Zulip alert prefix'
+        required: false
+        type: string
+        default: 'Distribution'
+    secrets:
+      pull-token:
+        description: 'registry read token for the scanned images'
+        required: true
+      ZULIP_EMAIL:
+        required: false
+      ZULIP_API_KEY:
+        required: false
+      ZULIP_ORGANIZATION_URL:
+        required: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      targets: ${{ steps.find.outputs.targets }}
+      version: ${{ steps.find.outputs.version }}
+      version-without-patch: ${{ steps.find.outputs.version-without-patch }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build image matrix
+        id: find
+        shell: bash
+        env:
+          PINS: ${{ inputs.pins }}
+          VERSION_FILE: ${{ inputs.version-file }}
+          MINOR_VERSION_OFFSET: ${{ inputs.minor-version-offset }}
+        run: |
+          set -euo pipefail
+          version=""
+          if [ -n "$VERSION_FILE" ]; then
+            version="$(cat "$VERSION_FILE")"
+            offset="${MINOR_VERSION_OFFSET:-0}"
+            if [ "$offset" -gt 0 ]; then
+              dir="$(dirname "$VERSION_FILE")"
+              versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+                | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)"
+              latest_minor="$(printf '%s\n' "$versions" | sed 's/^v//' \
+                | cut -d. -f1,2 | sort -V | tail -n1)"
+              [ -n "$latest_minor" ] || { echo "no versions under $dir" >&2; exit 1; }
+              target_minor="$(echo "$latest_minor" \
+                | awk -F. -v off="$offset" '{print $1"."($2-off)}')"
+              version="$(printf '%s\n' "$versions" \
+                | grep -E "^v${target_minor}\." | sort -V | tail -n1 || true)"
+              [ -n "$version" ] || { echo "no release for minor offset $offset" >&2; exit 1; }
+            fi
+          fi
+
+          targets=""
+          for pattern in $PINS; do
+            pattern="${pattern//%VERSION%/$version}"
+            for file in $pattern; do
+              [ -f "$file" ] || continue
+              while IFS= read -r image; do
+                [ -n "$image" ] || continue
+                targets="${targets}${image}"$'\n'
+              done < <(awk '
+                /^[[:space:]]*- name:/ { name=$3 }
+                /^[[:space:]]*newTag:/ { if (name != "") print name ":" $2 }
+              ' "$file")
+            done
+          done
+
+          unique="$(printf '%s' "$targets" | sort -u)"
+          json="$(printf '%s\n' "$unique" \
+            | jq -R -s 'split("\n") | map(select(length > 0)) | map({image: .})')"
+          echo "targets=${json}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "version-without-patch=v$(echo "${version#v}" | cut -d. -f1,2)" >> "$GITHUB_OUTPUT"
+          echo "$json" | jq .
+
+  scan:
+    needs: discover
+    if: needs.discover.outputs.targets != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.discover.outputs.targets) }}
+    name: scan ${{ matrix.target.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Login to GitHub Container Registry
+        if: startsWith(matrix.target.image, 'ghcr.io/')
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.pull-token }}
+      - name: Login to ControlPlane Artifact Registry
+        if: startsWith(matrix.target.image, 'cpar.dev/')
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: cpar.dev
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve trivyignore files
+        id: ignores
+        shell: bash
+        env:
+          PREFIX: ${{ inputs.ignore-prefix }}
+          VERSION: ${{ needs.discover.outputs.version }}
+          RELEASE_IGNORE: ${{ inputs.release-ignore }}
+        run: |
+          set -euo pipefail
+          files=""
+          if [ -n "$PREFIX" ] && [ -f "${PREFIX}/.trivyignore" ]; then
+            files="${PREFIX}/.trivyignore"
+          fi
+          if [ -z "$files" ] && [ -f .trivyignore ]; then
+            files=".trivyignore"
+          fi
+          if [ "$RELEASE_IGNORE" = "true" ] && [ -n "$PREFIX" ] && [ -n "$VERSION" ]; then
+            minor="v$(echo "${VERSION#v}" | cut -d. -f1,2)"
+            release_ignore="${PREFIX}/releases/release-${minor}.trivyignore"
+            if [ -f "$release_ignore" ]; then
+              files="${files:+${files},}${release_ignore}"
+            fi
+          fi
+          echo "files=${files:-.trivyignore}" >> "$GITHUB_OUTPUT"
+      - name: Scan image
+        id: trivy
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          cache: false
+          image-ref: ${{ matrix.target.image }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: ${{ inputs.severity }}
+          trivyignores: ${{ steps.ignores.outputs.files }}
+      - name: Scan result
+        shell: bash
+        run: |
+          echo "image: ${{ matrix.target.image }}"
+          echo "trivy: ${{ steps.trivy.outcome }}"
+      - name: Check result
+        if: inputs.check-scan-error && steps.trivy.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "Vulnerabilities found in ${{ matrix.target.image }}"
+          exit 1
+
+  notify-zulip:
+    needs: scan
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Job URL
+        id: job-url
+        run: |
+          url=$(gh run view ${GITHUB_RUN_ID} --repo ${GITHUB_REPO} --json jobs --jq ".jobs[0].url")
+          echo "url: $url"
+          echo url=$url >> $GITHUB_OUTPUT
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
+        with:
+          email: ${{ secrets.ZULIP_EMAIL }}
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          organization-url: ${{ secrets.ZULIP_ORGANIZATION_URL }}
+          type: stream
+          to: Distribution
+          topic: cve-alerts
+          content: '${{ inputs.alert }} CVE alert: ${{ steps.job-url.outputs.url }}'

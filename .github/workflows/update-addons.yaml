@@ -1,0 +1,93 @@
+name: Update addons
+
+on:
+  workflow_dispatch:
+    inputs:
+      addon:
+        description: 'Addon name'
+        required: true
+        type: choice
+        default: mcp
+        options:
+          - mcp
+          - all
+      version:
+        description: 'Addon image version (empty = latest tag, all = backfill every pinned version)'
+        required: false
+        type: string
+      chart_version:
+        description: 'Helm chart version (empty = latest chart, all = backfill every pinned version)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_REGISTRY: ghcr.io/controlplaneio-fluxcd
+  CHART_REGISTRY: ghcr.io/controlplaneio-fluxcd/charts
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_READONLY }}
+      - name: Helm login to GitHub Container Registry
+        shell: bash
+        env:
+          GHCR_READONLY: ${{ secrets.GHCR_READONLY }}
+        run: echo "$GHCR_READONLY" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Login to ControlPlane Artifact Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: cpar.dev
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Helm login to ControlPlane Artifact Registry
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | helm registry login cpar.dev -u "${{ github.actor }}" --password-stdin
+      - name: Update addon pins
+        id: pins
+        shell: bash
+        env:
+          ADDON: ${{ inputs.addon }}
+          ADDON_VERSION: ${{ inputs.version }}
+          CHART_VERSION: ${{ inputs.chart_version }}
+        run: |
+          set -euo pipefail
+          if [ "$ADDON" = "all" ]; then
+            for dir in fluxcd/ghcr.io/addons/*/; do
+              [ -d "$dir" ] || continue
+              ADDON="$(basename "$dir")" .github/workflows/update-addons.sh
+            done
+          else
+            .github/workflows/update-addons.sh
+          fi
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            Update addon ${{ inputs.addon }} pins
+          committer: GitHub <noreply@github.com>
+          signoff: true
+          branch: update-addon-${{ inputs.addon }}-${{ inputs.version || 'latest' }}
+          title: Update addon ${{ inputs.addon }} pins
+          body: |
+            Refresh chart and image pins for `${{ inputs.addon }}` in both
+            `ghcr.io` and `cpar.dev`.
+          labels: |
+            area/addons
