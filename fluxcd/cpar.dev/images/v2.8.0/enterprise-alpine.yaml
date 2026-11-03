@@ -1,0 +1,22 @@
+images:
+  - name: cpar.dev/fluxcd/alpine/source-controller
+    newTag: v1.8.0
+    digest: sha256:f3fa15830f8d1aeedad17c509144ab737cc7947bc4a1d3ea7fdc60152ab3d1d6
+  - name: cpar.dev/fluxcd/alpine/kustomize-controller
+    newTag: v1.8.0
+    digest: sha256:21dcb1cbb4a2e26bf2cea8a4089ea6cd885d4c770a1914c078b74bc074b96ef3
+  - name: cpar.dev/fluxcd/alpine/helm-controller
+    newTag: v1.5.0
+    digest: sha256:e9cd4d84c8fc4ec722032dbbb69c64d078f080aa654fad20da3ef1d2414c6a3a
+  - name: cpar.dev/fluxcd/alpine/notification-controller
+    newTag: v1.8.0
+    digest: sha256:01d62be486aa6aa494f015a3ec702ffdddb4a2a47958a91138662d34d2c4c31c
+  - name: cpar.dev/fluxcd/alpine/image-reflector-controller
+    newTag: v1.1.0
+    digest: sha256:2bd57a0719c8bea6c95ad58a4d3b89a5ff7d627eaed5e376cb2e5ffd61f09a3c
+  - name: cpar.dev/fluxcd/alpine/image-automation-controller
+    newTag: v1.1.0
+    digest: sha256:96c92680befb9556f9e04f27b30560a0c18bd6a59cfe3936451b9bf7450de34f
+  - name: cpar.dev/fluxcd/alpine/source-watcher
+    newTag: v2.1.0
+    digest: sha256:6c794f58c2acfbb7e4a2a571f9d1f2800ed76e2c5afda4faf721529eb37dd3ce
