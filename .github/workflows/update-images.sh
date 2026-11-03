@@ -114,8 +114,26 @@ flux_refs() {
     --export | grep 'ghcr.io/' | awk '{print $2}'
 }
 
+# Backfilling an existing version must not invent flavors that were never
+# published for it (older Flux releases predate distroless-fips). Derive the
+# variant list from the pins already committed for that version.
+VARIANTS_TO_UPDATE=("${VARIANTS[@]}")
+if [ -d "${GHCR_IMAGES_DIR}/${VERSION}" ]; then
+  existing_variants=()
+  for file in "${GHCR_IMAGES_DIR}/${VERSION}"/enterprise-*.yaml; do
+    [ -f "$file" ] || continue
+    variant="$(basename "$file")"
+    variant="${variant#enterprise-}"
+    variant="${variant%.yaml}"
+    existing_variants+=("$variant")
+  done
+  if [ "${#existing_variants[@]}" -gt 0 ]; then
+    VARIANTS_TO_UPDATE=("${existing_variants[@]}")
+  fi
+fi
+
 if [ "$PRODUCT" = "fluxcd" ]; then
-  for variant in "${VARIANTS[@]}"; do
+  for variant in "${VARIANTS_TO_UPDATE[@]}"; do
     refs="$(flux_refs "${GHCR_BASE}/${variant}")"
     write_pins "${GHCR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" <<<"$refs"
 
@@ -131,7 +149,7 @@ if [ "$PRODUCT" = "fluxcd" ]; then
   refs="$(flux_refs "ghcr.io/fluxcd")"
   write_pins "${GHCR_IMAGES_DIR}/${VERSION}/upstream-alpine.yaml" <<<"$refs"
 else
-  for variant in "${VARIANTS[@]}"; do
+  for variant in "${VARIANTS_TO_UPDATE[@]}"; do
     ghcr_ref="${GHCR_BASE}/${variant}/openbao:${VERSION}"
     cpar_ref="${CPAR_BASE}/${variant}/openbao:${VERSION}"
     write_pins "${GHCR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" <<<"$ghcr_ref"
