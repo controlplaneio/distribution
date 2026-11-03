@@ -1,0 +1,22 @@
+images:
+  - name: cpar.dev/fluxcd/distroless-fips/source-controller
+    newTag: v1.9.2
+    digest: sha256:d0ee8aa73a629a226a6d3336e9dbf030e8fd1618396ce1fd4d93cb8a8be0bd0f
+  - name: cpar.dev/fluxcd/distroless-fips/kustomize-controller
+    newTag: v1.9.2
+    digest: sha256:675e1f7206313fffd3586a0377311f8f6ad1992c4f51f1d162e64cd9d7920614
+  - name: cpar.dev/fluxcd/distroless-fips/helm-controller
+    newTag: v1.6.2
+    digest: sha256:2f6f221a0f114b4851de9456104e66b99abd396df26812b662c7fcdad5484a0b
+  - name: cpar.dev/fluxcd/distroless-fips/notification-controller
+    newTag: v1.9.2
+    digest: sha256:caa722a0e6a95b48aaa1aaef1aee42f625829d2e8814c3002ceccb8f4731d40d
+  - name: cpar.dev/fluxcd/distroless-fips/image-reflector-controller
+    newTag: v1.2.2
+    digest: sha256:86f81cf7be774f4b594a954b595a35afbb69cb3999b2a94f946de0fa43e3fe97
+  - name: cpar.dev/fluxcd/distroless-fips/image-automation-controller
+    newTag: v1.2.2
+    digest: sha256:38307e55e1ab3fd28853b3b290ac18cefe3d0f82515b7082c60ddfcfa3593e85
+  - name: cpar.dev/fluxcd/distroless-fips/source-watcher
+    newTag: v2.2.2
+    digest: sha256:580587ab41bf8f6215776fac5879d9753c7fbb2db40344aff51c2befea9797ec
