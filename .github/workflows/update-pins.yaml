@@ -1,14 +1,24 @@
-name: Update Dex
+name: Update pins
 
 on:
   workflow_dispatch:
     inputs:
+      target:
+        description: 'Update target'
+        required: true
+        type: choice
+        default: fluxcd
+        options:
+          - fluxcd
+          - openbao
+          - dex
+          - mcp
       version:
-        description: 'Dex image version (empty = VERSION file, all = every pinned version)'
+        description: 'Image version (empty = VERSION file / latest pin, all = every pinned version)'
         required: false
         type: string
       chart_version:
-        description: 'Helm chart version (empty = latest, all = every pinned chart)'
+        description: 'Chart version (empty = latest / matching, all = every pinned chart, skip = images only)'
         required: false
         type: string
 
@@ -25,32 +35,58 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Resolve Dex versions
+      - name: Resolve target versions
         id: find
         shell: bash
         env:
+          TARGET: ${{ inputs.target }}
           VERSION: ${{ inputs.version }}
           CHART_VERSION: ${{ inputs.chart_version }}
         run: |
           set -euo pipefail
+          case "$TARGET" in
+            fluxcd) images_dir="fluxcd/ghcr.io/images" ;;
+            openbao) images_dir="openbao/ghcr.io/images" ;;
+            dex) images_dir="dex/ghcr.io/images" ;;
+            mcp) images_dir="fluxcd/ghcr.io/addons/mcp/images" ;;
+            *) echo "unknown target: $TARGET" >&2; exit 1 ;;
+          esac
+
           if [ "$VERSION" = "all" ]; then
-            versions="$(find dex/ghcr.io/images -mindepth 1 -maxdepth 1 \
+            versions="$(find "$images_dir" -mindepth 1 -maxdepth 1 \
               -type d -name 'v*' -printf '%f\n' | sort -V)"
           elif [ -z "$VERSION" ]; then
-            versions="$(cat dex/ghcr.io/images/VERSION)"
+            if [ -f "${images_dir}/VERSION" ]; then
+              versions="$(cat "${images_dir}/VERSION")"
+            else
+              versions="$(ls "$images_dir" | grep -E '^v[0-9]' | sort -V | tail -n1)"
+            fi
           else
             versions="$VERSION"
           fi
-          [ -n "$versions" ] || { echo "no Dex versions found" >&2; exit 1; }
+          [ -n "$versions" ] || { echo "no versions found under $images_dir" >&2; exit 1; }
 
           latest="$(printf '%s\n' "$versions" | sort -V | tail -n1)"
           entries="[]"
           for v in $versions; do
-            chart="$CHART_VERSION"
-            if [ "$v" != "$latest" ]; then
-              # Keep chart updates in the latest image-version PR only.
-              chart="skip"
-            fi
+            chart="skip"
+            case "$TARGET" in
+              mcp)
+                if [ -z "$CHART_VERSION" ] || [ "$CHART_VERSION" = "all" ]; then
+                  # mcp chart versions match image versions without the v prefix.
+                  chart="${v#v}"
+                elif [ "$VERSION" = "all" ] && [ "$v" != "$latest" ]; then
+                  chart="skip"
+                else
+                  chart="$CHART_VERSION"
+                fi
+                ;;
+              dex)
+                if [ "$v" = "$latest" ]; then
+                  chart="$CHART_VERSION"
+                fi
+                ;;
+            esac
             entries="$(jq -c --arg v "$v" --arg c "$chart" \
               '. + [{version: $v, chart_version: $c}]' <<<"$entries")"
           done
@@ -68,9 +104,10 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
         entry: ${{ fromJSON(needs.discover.outputs.entries) }}
-    name: Dex ${{ matrix.entry.version }}
+    name: ${{ inputs.target }} ${{ matrix.entry.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -87,24 +124,30 @@ jobs:
         run: echo "$GHCR_READONLY" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Login to ControlPlane Artifact Registry
         uses: ./.github/actions/cpar-login
-      - name: Update Dex pins
+      - name: Setup Flux
+        if: inputs.target == 'fluxcd'
+        uses: fluxcd/flux2/action@3fa784edd773d56630bb9f62645e08f70c2cff0a # v2.10.0
+        with:
+          version: ${{ matrix.entry.version }}
+      - name: Update pins
         shell: bash
         env:
-          DEX_VERSION: ${{ matrix.entry.version }}
+          TARGET: ${{ inputs.target }}
+          VERSION: ${{ matrix.entry.version }}
           CHART_VERSION: ${{ matrix.entry.chart_version }}
-        run: .github/workflows/update-dex.sh
+        run: .github/workflows/update-pins.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
-            Update Dex ${{ matrix.entry.version }} pins
+            Update ${{ inputs.target }} ${{ matrix.entry.version }} pins
           committer: GitHub <noreply@github.com>
           signoff: true
-          branch: update-dex-${{ matrix.entry.version }}
-          title: Update Dex ${{ matrix.entry.version }} pins
+          branch: update-${{ inputs.target }}-${{ matrix.entry.version }}
+          title: Update ${{ inputs.target }} ${{ matrix.entry.version }} pins
           body: |
-            Refresh Dex image pins for `${{ matrix.entry.version }}` in both
-            `ghcr.io` and `cpar.dev`.
+            Refresh image and chart pins for `${{ inputs.target }}`
+            `${{ matrix.entry.version }}` in both `ghcr.io` and `cpar.dev`.
           labels: |
             area/updates
