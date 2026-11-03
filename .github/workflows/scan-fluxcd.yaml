@@ -14,16 +14,12 @@ on:
           - addons
           - upstream
           - operator
-          - license
       version:
         description: 'Scan only this version (empty = last 3 minor versions)'
         required: false
         type: string
   schedule:
   - cron: '00 4 * * 1-5'
-  push:
-    branches:
-      - 'license-*'
 
 permissions:
   contents: read
@@ -39,7 +35,6 @@ jobs:
     with:
       pins: >-
         fluxcd/cpar.dev/images/%VERSION%/enterprise-alpine.yaml
-        fluxcd/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
       version-file: fluxcd/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
@@ -160,21 +155,3 @@ jobs:
       run: |
         echo "Operator has vulnerabilities"
         exit 1
-
-  license:
-    if: github.event_name == 'push' || inputs.scan == '' || inputs.scan == 'all' || inputs.scan == 'license'
-    permissions:
-      contents: read
-      actions: read
-    uses: ./.github/workflows/_scan-license.yaml
-    with:
-      product: Flux
-      repository: fluxcd/flux2
-      version-file: fluxcd/ghcr.io/images/VERSION
-      version: ${{ inputs.version }}
-      minor-count: '3'
-      alert: Flux License
-    secrets:
-      ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
-      ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
-      ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}
