@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: ''
+      version:
+        description: 'scan only this exact version (empty = use minor-count selection)'
+        required: false
+        type: string
+        default: ''
       minor-count:
         description: 'number of latest minor versions to scan (0 = latest only)'
         required: false
@@ -81,6 +86,7 @@ jobs:
           PINS: ${{ inputs.pins }}
           VERSION_FILE: ${{ inputs.version-file }}
           VERSION_DIR: ${{ inputs.version-dir }}
+          ONLY_VERSION: ${{ inputs.version }}
           MINOR_COUNT: ${{ inputs.minor-count }}
         run: |
           set -euo pipefail
@@ -98,7 +104,9 @@ jobs:
           [ -n "$all_versions" ] || { echo "no versions under $dir" >&2; exit 1; }
 
           count="${MINOR_COUNT:-3}"
-          if [ "$count" -le 0 ]; then
+          if [ -n "$ONLY_VERSION" ]; then
+            selected="$ONLY_VERSION"
+          elif [ "$count" -le 0 ]; then
             if [ -n "$VERSION_FILE" ]; then
               selected="$(cat "$VERSION_FILE")"
             else
