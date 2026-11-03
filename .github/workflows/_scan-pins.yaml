@@ -126,15 +126,26 @@ jobs:
           echo "selected versions:" >&2
           printf '%s\n' "$selected" >&2
 
+          selected_versions="$(printf '%s\n' "$selected" | sed '/^$/d' | sort -Vr)"
+          selected_minors="$(printf '%s\n' "$selected_versions" | sed 's/^v//' \
+            | cut -d. -f1,2 | sort -Vr)"
+
           targets=""
-          for version in $selected; do
+          for version in $selected_versions; do
+            minor="$(echo "${version#v}" | cut -d. -f1,2)"
+            rank="$(printf '%s\n' "$selected_minors" \
+              | awk -v m="$minor" '$0 == m { print NR; exit }')"
+            case "$rank" in
+              1) label="" ;;
+              *) label="N-$((rank - 1))" ;;
+            esac
             for pattern in $PINS; do
               pattern="${pattern//%VERSION%/$version}"
               for file in $pattern; do
                 [ -f "$file" ] || continue
                 while IFS= read -r image; do
                   [ -n "$image" ] || continue
-                  targets="${targets}${image}|${version}"$'\n'
+                  targets="${targets}${image}|${version}|${label}"$'\n'
                 done < <(awk '
                   /^[[:space:]]*- name:/ { name=$3 }
                   /^[[:space:]]*newTag:/ { if (name != "") print name ":" $2 }
@@ -147,7 +158,7 @@ jobs:
           json="$(printf '%s\n' "$unique" | jq -cR -s '
             split("\n")
             | map(select(length > 0))
-            | map(split("|") | {image: .[0], version: .[1]})
+            | map(split("|") | {image: .[0], version: .[1], label: .[2]})
           ')"
           echo "targets=${json}" >> "$GITHUB_OUTPUT"
           echo "$json" | jq .
@@ -163,7 +174,7 @@ jobs:
       fail-fast: false
       matrix:
         target: ${{ fromJSON(needs.discover.outputs.targets) }}
-    name: scan ${{ matrix.target.image }}
+    name: scan ${{ matrix.target.version }} ${{ matrix.target.image }}${{ matrix.target.label != '' && format(' ({0})', matrix.target.label) || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -231,17 +242,33 @@ jobs:
     needs: scan
     if: failure()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - name: Get Job URL
-        id: job-url
-        run: |
-          url=$(gh run view ${GITHUB_RUN_ID} --repo ${GITHUB_REPO} --json jobs --jq ".jobs[0].url")
-          echo "url: $url"
-          echo url=$url >> $GITHUB_OUTPUT
+      - name: Build message
+        id: message
+        shell: bash
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALERT: ${{ inputs.alert }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/${GITHUB_REPO}/actions/runs/${GITHUB_RUN_ID}"
+          failed="$(gh run view "$GITHUB_RUN_ID" --repo "$GITHUB_REPO" --json jobs \
+            --jq '.jobs[] | select(.conclusion == "failure") | .name' | sed 's/^/- /')"
+          [ -n "$failed" ] || failed="- scan job failed"
+          {
+            echo "content<<EOF"
+            echo "${ALERT} CVE scan failed"
+            echo
+            echo "$failed"
+            echo
+            echo "Run: ${url}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           email: ${{ secrets.ZULIP_EMAIL }}
@@ -250,4 +277,4 @@ jobs:
           type: stream
           to: Distribution
           topic: cve-alerts
-          content: '${{ inputs.alert }} CVE alert: ${{ steps.job-url.outputs.url }}'
+          content: ${{ steps.message.outputs.content }}

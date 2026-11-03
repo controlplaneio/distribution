@@ -37,6 +37,18 @@ on:
         required: false
         type: string
         default: '0.9'
+      alert:
+        description: 'Zulip alert prefix'
+        required: false
+        type: string
+        default: 'Distribution'
+    secrets:
+      ZULIP_EMAIL:
+        required: false
+      ZULIP_API_KEY:
+        required: false
+      ZULIP_ORGANIZATION_URL:
+        required: false
 
 jobs:
   discover:
@@ -44,7 +56,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      versions: ${{ steps.find.outputs.versions }}
+      targets: ${{ steps.find.outputs.targets }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -92,10 +104,24 @@ jobs:
           fi
           [ -n "$selected" ] || { echo "no matching versions under $dir" >&2; exit 1; }
 
-          json="$(printf '%s\n' "$selected" \
-            | jq -cR -s 'split("\n") | map(select(length > 0))')"
-          echo "versions=${json}" >> "$GITHUB_OUTPUT"
-          echo "$json" | jq .
+          selected_versions="$(printf '%s\n' "$selected" | sed '/^$/d' | sort -Vr)"
+          selected_minors="$(printf '%s\n' "$selected_versions" | sed 's/^v//' \
+            | cut -d. -f1,2 | sort -Vr)"
+
+          targets="[]"
+          for version in $selected_versions; do
+            minor="$(echo "${version#v}" | cut -d. -f1,2)"
+            rank="$(printf '%s\n' "$selected_minors" \
+              | awk -v m="$minor" '$0 == m { print NR; exit }')"
+            case "$rank" in
+              1) label="" ;;
+              *) label="N-$((rank - 1))" ;;
+            esac
+            targets="$(jq -c --arg v "$version" --arg l "$label" \
+              '. + [{version: $v, label: $l}]' <<<"$targets")"
+          done
+          echo "targets=${targets}" >> "$GITHUB_OUTPUT"
+          echo "$targets" | jq .
 
   license:
     needs: discover
@@ -105,14 +131,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ${{ fromJSON(needs.discover.outputs.versions) }}
-    name: ${{ inputs.product }} ${{ matrix.version }}
+        target: ${{ fromJSON(needs.discover.outputs.targets) }}
+    name: ${{ inputs.product }} ${{ matrix.target.version }}${{ matrix.target.label != '' && format(' ({0})', matrix.target.label) || '' }}
     steps:
-      - name: Checkout ${{ inputs.product }} ${{ matrix.version }}
+      - name: Checkout ${{ inputs.product }} ${{ matrix.target.version }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ inputs.repository }}
-          ref: ${{ matrix.version }}
+          ref: ${{ matrix.target.version }}
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -134,3 +160,44 @@ jobs:
           trivy fs -q --format table --scanners license \
             --license-confidence-level "${{ inputs.license-confidence-level }}" \
             --severity UNKNOWN,HIGH,CRITICAL ./go.mod --exit-code 1
+
+  notify-zulip:
+    needs: license
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Build message
+        id: message
+        shell: bash
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALERT: ${{ inputs.alert }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/${GITHUB_REPO}/actions/runs/${GITHUB_RUN_ID}"
+          failed="$(gh run view "$GITHUB_RUN_ID" --repo "$GITHUB_REPO" --json jobs \
+            --jq '.jobs[] | select(.conclusion == "failure") | .name' | sed 's/^/- /')"
+          [ -n "$failed" ] || failed="- license scan failed"
+          {
+            echo "content<<EOF"
+            echo "${ALERT} license scan failed"
+            echo
+            echo "$failed"
+            echo
+            echo "Run: ${url}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
+        with:
+          email: ${{ secrets.ZULIP_EMAIL }}
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          organization-url: ${{ secrets.ZULIP_ORGANIZATION_URL }}
+          type: stream
+          to: Distribution
+          topic: cve-alerts
+          content: ${{ steps.message.outputs.content }}

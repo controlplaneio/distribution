@@ -171,3 +171,8 @@ jobs:
       version-file: fluxcd/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
+      alert: Flux License
+    secrets:
+      ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
+      ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+      ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}

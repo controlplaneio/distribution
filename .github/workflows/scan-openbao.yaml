@@ -65,3 +65,8 @@ jobs:
       # at <1.0 confidence. Gate only exact classifier matches so those
       # false positives don't fail the check.
       license-confidence-level: '1.0'
+      alert: OpenBao License
+    secrets:
+      ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
+      ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+      ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}
