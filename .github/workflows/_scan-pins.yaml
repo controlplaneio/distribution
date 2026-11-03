@@ -116,7 +116,7 @@ jobs:
 
           unique="$(printf '%s' "$targets" | sort -u)"
           json="$(printf '%s\n' "$unique" \
-            | jq -R -s 'split("\n") | map(select(length > 0)) | map({image: .})')"
+            | jq -cR -s 'split("\n") | map(select(length > 0)) | map({image: .})')"
           echo "targets=${json}" >> "$GITHUB_OUTPUT"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "version-without-patch=v$(echo "${version#v}" | cut -d. -f1,2)" >> "$GITHUB_OUTPUT"
