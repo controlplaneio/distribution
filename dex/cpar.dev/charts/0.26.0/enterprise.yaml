@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: dex
+spec:
+  url: oci://cpar.dev/dex/charts/dex
+  ref:
+    tag: 0.26.0
+    digest: sha256:c89eb1094a19d4e54bc1a13fa25d835369524b6663084821869bff521d36410c
