@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Dex image version (empty = VERSION file, all = backfill every pinned version)'
+        description: 'Dex image version (empty = VERSION file, all = every pinned version)'
         required: false
         type: string
       chart_version:
-        description: 'Helm chart version (empty = latest chart, all = backfill every pinned version)'
+        description: 'Helm chart version (empty = latest, all = every pinned chart)'
         required: false
         type: string
 
@@ -16,13 +16,61 @@ permissions:
   contents: read
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      entries: ${{ steps.find.outputs.entries }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Resolve Dex versions
+        id: find
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          CHART_VERSION: ${{ inputs.chart_version }}
+        run: |
+          set -euo pipefail
+          if [ "$VERSION" = "all" ]; then
+            versions="$(find dex/ghcr.io/images -mindepth 1 -maxdepth 1 \
+              -type d -name 'v*' -printf '%f\n' | sort -V)"
+          elif [ -z "$VERSION" ]; then
+            versions="$(cat dex/ghcr.io/images/VERSION)"
+          else
+            versions="$VERSION"
+          fi
+          [ -n "$versions" ] || { echo "no Dex versions found" >&2; exit 1; }
+
+          latest="$(printf '%s\n' "$versions" | sort -V | tail -n1)"
+          entries="[]"
+          for v in $versions; do
+            chart="$CHART_VERSION"
+            if [ "$v" != "$latest" ]; then
+              # Keep chart updates in the latest image-version PR only.
+              chart="skip"
+            fi
+            entries="$(jq -c --arg v "$v" --arg c "$chart" \
+              '. + [{version: $v, chart_version: $c}]' <<<"$entries")"
+          done
+          echo "entries=${entries}" >> "$GITHUB_OUTPUT"
+          echo "$entries" | jq .
+
   generate:
+    needs: discover
+    if: needs.discover.outputs.entries != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
       packages: read
       id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        entry: ${{ fromJSON(needs.discover.outputs.entries) }}
+    name: Dex ${{ matrix.entry.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -40,23 +88,23 @@ jobs:
       - name: Login to ControlPlane Artifact Registry
         uses: ./.github/actions/cpar-login
       - name: Update Dex pins
-        id: pins
         shell: bash
         env:
-          DEX_VERSION: ${{ inputs.version }}
-          CHART_VERSION: ${{ inputs.chart_version }}
+          DEX_VERSION: ${{ matrix.entry.version }}
+          CHART_VERSION: ${{ matrix.entry.chart_version }}
         run: .github/workflows/update-dex.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
-            Update Dex pins
+            Update Dex ${{ matrix.entry.version }} pins
           committer: GitHub <noreply@github.com>
           signoff: true
-          branch: update-dex-${{ inputs.version || 'latest' }}
-          title: Update Dex pins
+          branch: update-dex-${{ matrix.entry.version }}
+          title: Update Dex ${{ matrix.entry.version }} pins
           body: |
-            Refresh Dex image and chart pins in both `ghcr.io` and `cpar.dev`.
+            Refresh Dex image pins for `${{ matrix.entry.version }}` in both
+            `ghcr.io` and `cpar.dev`.
           labels: |
             area/dex

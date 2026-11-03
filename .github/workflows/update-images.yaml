@@ -12,7 +12,7 @@ on:
           - fluxcd
           - openbao
       version:
-        description: 'Product version (empty = VERSION file, all = backfill every pinned version)'
+        description: 'Product version (empty = VERSION file, all = every pinned version)'
         required: false
         type: string
 
@@ -20,13 +20,51 @@ permissions:
   contents: read
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      versions: ${{ steps.find.outputs.versions }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Resolve versions
+        id: find
+        shell: bash
+        env:
+          PRODUCT: ${{ inputs.product }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [ "$VERSION" = "all" ]; then
+            versions="$(find "${PRODUCT}/ghcr.io/images" -mindepth 1 -maxdepth 1 \
+              -type d -name 'v*' -printf '%f\n' | sort -V \
+              | jq -R -s 'split("\n") | map(select(length > 0))')"
+          elif [ -z "$VERSION" ]; then
+            v="$(cat "${PRODUCT}/ghcr.io/images/VERSION")"
+            versions="$(jq -cn --arg v "$v" '[$v]')"
+          else
+            versions="$(jq -cn --arg v "$VERSION" '[$v]')"
+          fi
+          echo "versions=${versions}" >> "$GITHUB_OUTPUT"
+          echo "$versions" | jq .
+
   generate:
+    needs: discover
+    if: needs.discover.outputs.versions != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
       packages: read
       id-token: write
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        version: ${{ fromJSON(needs.discover.outputs.versions) }}
+    name: ${{ inputs.product }} ${{ matrix.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -39,41 +77,28 @@ jobs:
       - name: Login to ControlPlane Artifact Registry
         uses: ./.github/actions/cpar-login
       - name: Setup Flux
-        if: inputs.product == 'fluxcd' && inputs.version != '' && inputs.version != 'all'
+        if: inputs.product == 'fluxcd'
         uses: fluxcd/flux2/action@3fa784edd773d56630bb9f62645e08f70c2cff0a # v2.10.0
         with:
-          version: ${{ inputs.version }}
-      - name: Setup Flux (latest)
-        if: inputs.product == 'fluxcd' && (inputs.version == '' || inputs.version == 'all')
-        uses: fluxcd/flux2/action@3fa784edd773d56630bb9f62645e08f70c2cff0a # v2.10.0
-      - name: Resolve version
-        id: version
-        shell: bash
-        env:
-          PRODUCT: ${{ inputs.product }}
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          version="${VERSION:-$(cat "${PRODUCT}/ghcr.io/images/VERSION")}"
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          version: ${{ matrix.version }}
       - name: Update image pins
         shell: bash
         env:
           PRODUCT: ${{ inputs.product }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ matrix.version }}
         run: .github/workflows/update-images.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
-            Update ${{ inputs.product }} images for ${{ steps.version.outputs.version }}
+            Update ${{ inputs.product }} images for ${{ matrix.version }}
           committer: GitHub <noreply@github.com>
           signoff: true
-          branch: update-images-${{ inputs.product }}-${{ steps.version.outputs.version }}
-          title: Update ${{ inputs.product }} images for ${{ steps.version.outputs.version }}
+          branch: update-images-${{ inputs.product }}-${{ matrix.version }}
+          title: Update ${{ inputs.product }} images for ${{ matrix.version }}
           body: |
             Update `${{ inputs.product }}` image digests for
-            `${{ steps.version.outputs.version }}` in both `ghcr.io` and `cpar.dev`.
+            `${{ matrix.version }}` in both `ghcr.io` and `cpar.dev`.
           labels: |
             area/images

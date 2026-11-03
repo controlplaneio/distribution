@@ -12,11 +12,11 @@ on:
           - mcp
           - all
       version:
-        description: 'Addon image version (empty = latest tag, all = backfill every pinned version)'
+        description: 'Addon image version (empty = latest pin, all = every pinned version)'
         required: false
         type: string
       chart_version:
-        description: 'Helm chart version (empty = latest chart, all = backfill every pinned version)'
+        description: 'Helm chart version (empty = matching chart, all = matching charts)'
         required: false
         type: string
 
@@ -28,13 +28,82 @@ env:
   CHART_REGISTRY: ghcr.io/controlplaneio-fluxcd/charts
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      entries: ${{ steps.find.outputs.entries }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Resolve addon versions
+        id: find
+        shell: bash
+        env:
+          ADDON: ${{ inputs.addon }}
+          VERSION: ${{ inputs.version }}
+          CHART_VERSION: ${{ inputs.chart_version }}
+        run: |
+          set -euo pipefail
+          if [ "$ADDON" = "all" ]; then
+            addons=()
+            for dir in fluxcd/ghcr.io/addons/*/; do
+              [ -d "$dir" ] || continue
+              addons+=("$(basename "$dir")")
+            done
+          else
+            addons=("$ADDON")
+          fi
+
+          entries="[]"
+          for addon in "${addons[@]}"; do
+            base="fluxcd/ghcr.io/addons/${addon}"
+            [ -d "${base}/images" ] || { echo "unknown addon: ${addon}" >&2; exit 1; }
+
+            if [ "$VERSION" = "all" ]; then
+              versions="$(find "${base}/images" -mindepth 1 -maxdepth 1 \
+                -type d -printf '%f\n' | sort -V)"
+            elif [ -z "$VERSION" ]; then
+              versions="$(ls "${base}/images" | sort -V | tail -n1)"
+            else
+              versions="$VERSION"
+            fi
+            [ -n "$versions" ] || { echo "no versions for addon ${addon}" >&2; exit 1; }
+
+            latest="$(printf '%s\n' "$versions" | sort -V | tail -n1)"
+            for v in $versions; do
+              chart="${CHART_VERSION}"
+              if [ -z "$chart" ] || [ "$chart" = "all" ]; then
+                # mcp chart versions match image versions without the v prefix.
+                chart="${v#v}"
+              elif [ "$VERSION" = "all" ] && [ "$v" != "$latest" ]; then
+                # Do not duplicate an explicitly requested chart pin across
+                # every image-version PR; attach it to the latest only.
+                chart="skip"
+              fi
+              entries="$(jq -c --arg a "$addon" --arg v "$v" --arg c "$chart" \
+                '. + [{addon: $a, version: $v, chart_version: $c}]' <<<"$entries")"
+            done
+          done
+          echo "entries=${entries}" >> "$GITHUB_OUTPUT"
+          echo "$entries" | jq .
+
   generate:
+    needs: discover
+    if: needs.discover.outputs.entries != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
       packages: read
       id-token: write
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        entry: ${{ fromJSON(needs.discover.outputs.entries) }}
+    name: ${{ matrix.entry.addon }} ${{ matrix.entry.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,34 +121,24 @@ jobs:
       - name: Login to ControlPlane Artifact Registry
         uses: ./.github/actions/cpar-login
       - name: Update addon pins
-        id: pins
         shell: bash
         env:
-          ADDON: ${{ inputs.addon }}
-          ADDON_VERSION: ${{ inputs.version }}
-          CHART_VERSION: ${{ inputs.chart_version }}
-        run: |
-          set -euo pipefail
-          if [ "$ADDON" = "all" ]; then
-            for dir in fluxcd/ghcr.io/addons/*/; do
-              [ -d "$dir" ] || continue
-              ADDON="$(basename "$dir")" .github/workflows/update-addons.sh
-            done
-          else
-            .github/workflows/update-addons.sh
-          fi
+          ADDON: ${{ matrix.entry.addon }}
+          ADDON_VERSION: ${{ matrix.entry.version }}
+          CHART_VERSION: ${{ matrix.entry.chart_version }}
+        run: .github/workflows/update-addons.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
-            Update addon ${{ inputs.addon }} pins
+            Update addon ${{ matrix.entry.addon }} ${{ matrix.entry.version }} pins
           committer: GitHub <noreply@github.com>
           signoff: true
-          branch: update-addon-${{ inputs.addon }}-${{ inputs.version || 'latest' }}
-          title: Update addon ${{ inputs.addon }} pins
+          branch: update-addon-${{ matrix.entry.addon }}-${{ matrix.entry.version }}
+          title: Update addon ${{ matrix.entry.addon }} ${{ matrix.entry.version }} pins
           body: |
-            Refresh chart and image pins for `${{ inputs.addon }}` in both
-            `ghcr.io` and `cpar.dev`.
+            Refresh pins for the **${{ matrix.entry.addon }}** addon at
+            `${{ matrix.entry.version }}` in both `ghcr.io` and `cpar.dev`.
           labels: |
             area/addons
