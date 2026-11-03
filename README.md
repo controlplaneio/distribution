@@ -8,7 +8,7 @@ hardened images and Helm charts. The digests for each
 distribution are stored in the corresponding directories
 listed below.
 
-> [!INFO]
+> [!TIP]
 > For access to the ControlPlane Artifact Registry,
 > see [docs](https://docs.cpar.dev).
 
