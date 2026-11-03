@@ -23,13 +23,19 @@ CHART_VERSION="${CHART_VERSION:-skip}"
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
 resolve_digest() {
-  local ref="$1" digest
-  digest="$(docker buildx imagetools inspect "$ref" --format '{{json .}}' | jq -r .manifest.digest)"
-  if [ -z "$digest" ] || [ "$digest" = "null" ]; then
-    echo "no digest for ${ref}" >&2
-    return 1
-  fi
-  printf '%s\n' "$digest"
+  local ref="$1" digest attempt
+  for attempt in 1 2 3 4 5; do
+    if digest="$(docker buildx imagetools inspect "$ref" --format '{{json .}}' 2>/dev/null | jq -r .manifest.digest)"; then
+      if [ -n "$digest" ] && [ "$digest" != "null" ]; then
+        printf '%s\n' "$digest"
+        return 0
+      fi
+    fi
+    echo "digest lookup failed for ${ref} (attempt ${attempt}/5), retrying..." >&2
+    sleep 3
+  done
+  echo "no digest for ${ref}" >&2
+  return 1
 }
 
 write_pin_file() {
