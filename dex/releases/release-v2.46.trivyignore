@@ -1,0 +1,5 @@
+# Suppressions scoped to the Dex v2.46 release. The stock
+# dex/.trivyignore applies to all minors; entries here are for findings
+# specific to this minor.
+#
+# status: fixed (backported via patch)
