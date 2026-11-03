@@ -22,7 +22,7 @@ The root [`LICENSE`](LICENSE) covers this repository's contents. The
 referenced artifacts are licensed by their upstream projects and ControlPlane's
 commercial terms.
 
-| Directory | Distribution | Version | Vulnerability Scan | License scan |
+| Directory | Distribution | Latest Version | Vulnerability Scan | License Scan |
 |---|---|---|---|---|
 | [`fluxcd/`](fluxcd/) | Enterprise for Flux CD | [![Version](https://img.shields.io/badge/version-v2.10.0-blue)](fluxcd/) | [![Flux distroless](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-fluxcd-distroless.yaml?label=scan&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd-distroless.yaml) | [![Flux license](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-fluxcd.yaml?label=scan&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-fluxcd.yaml) |
 | [`openbao/`](openbao/) | Enterprise for OpenBao | [![Version](https://img.shields.io/badge/version-v2.7.2-blue)](openbao/) | [![OpenBao distroless](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-openbao-distroless.yaml?label=scan&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-openbao-distroless.yaml) | [![OpenBao license](https://img.shields.io/github/actions/workflow/status/controlplaneio/distribution/scan-openbao.yaml?label=scan&branch=main)](https://github.com/controlplaneio/distribution/actions/workflows/scan-openbao.yaml) |
