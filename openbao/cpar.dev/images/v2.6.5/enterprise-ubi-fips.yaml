@@ -1,0 +1,4 @@
+images:
+  - name: cpar.dev/openbao/ubi-fips/openbao
+    newTag: v2.6.5
+    digest: sha256:e6a08befe8dcd18bc8722a300bb59d77aa5b62e25ff3f9b7e532ca6b7083dcc0
