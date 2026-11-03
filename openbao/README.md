@@ -1,9 +1,5 @@
 # Enterprise Distribution for OpenBao
 
-[![Vulnerability scan - UBI](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-ubi.yaml/badge.svg)](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-ubi.yaml)
-[![Vulnerability scan - Distroless](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-distroless.yaml/badge.svg)](https://github.com/controlplaneio-openbao/distribution/actions/workflows/scan-distroless.yaml)
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://control-plane.io/enterprise-for-openbao)
-
 [ControlPlane Enterprise for OpenBao](https://control-plane.io/enterprise-for-openbao)
 is a comprehensive solution for organizations seeking
 to adopt open source secrets management with enterprise-grade assurance.

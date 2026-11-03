@@ -1,11 +1,5 @@
 # Enterprise Distribution for Flux CD
 
-[![release](https://img.shields.io/github/release/controlplaneio-fluxcd/distribution/all.svg)](https://github.com/controlplaneio-fluxcd/distribution/releases)
-[![e2e-fips](https://github.com/controlplaneio-fluxcd/distribution/actions/workflows/e2e-fips.yaml/badge.svg)](https://github.com/controlplaneio-fluxcd/distribution/actions/workflows/e2e-fips.yaml)
-[![Vulnerability scan](https://github.com/controlplaneio-fluxcd/distribution/actions/workflows/scan-distroless.yaml/badge.svg)](https://github.com/controlplaneio-fluxcd/distribution/actions/workflows/scan-distroless.yaml)
-[![License scan](https://github.com/controlplaneio-fluxcd/distribution/actions/workflows/scan-license.yaml/badge.svg)](https://github.com/controlplaneio-fluxcd/distribution/actions/workflows/scan-license.yaml)
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#supply-chain-security)
-
 [ControlPlane Enterprise for Flux CD](https://fluxcd.control-plane.io)
 is a comprehensive solution for organizations seeking
 to leverage the power of GitOps in their Kubernetes environments.

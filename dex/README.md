@@ -1,8 +1,5 @@
 # Enterprise Distribution for Dex
 
-[![Vulnerability scan](https://github.com/controlplaneio/distribution/actions/workflows/scan-dex.yaml/badge.svg)](https://github.com/controlplaneio/distribution/actions/workflows/scan-dex.yaml)
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#supply-chain-security)
-
 [ControlPlane Enterprise for Dex](https://control-plane.io/contact/)
 is a hardened distribution of the [Dex](https://dexidp.io) OIDC identity
 provider for Kubernetes.
