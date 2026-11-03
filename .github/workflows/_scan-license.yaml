@@ -1,6 +1,4 @@
 # Reusable license scan for a distribution's upstream Go module.
-name: scan license
-
 on:
   workflow_call:
     inputs:

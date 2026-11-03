@@ -4,8 +4,6 @@
 # last N minor versions, then scans every image referenced by the resulting
 # manifests. Missing pin files are ignored so a scan can cover both
 # registries once cpar.dev pins have been backfilled.
-name: scan pins
-
 on:
   workflow_call:
     inputs:
