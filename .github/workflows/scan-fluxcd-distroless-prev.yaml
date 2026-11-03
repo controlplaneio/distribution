@@ -9,6 +9,7 @@ jobs:
   scan-1:
     permissions:
       contents: read
+      id-token: write
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: >-
@@ -27,6 +28,7 @@ jobs:
   scan-2:
     permissions:
       contents: read
+      id-token: write
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: >-

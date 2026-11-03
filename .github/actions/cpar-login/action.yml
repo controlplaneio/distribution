@@ -1,0 +1,31 @@
+name: CPAR login
+description: Authenticate to cpar.dev with flux-mirror's GitHub Actions provider.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup flux-mirror
+      uses: fluxcd/flux-mirror/actions/setup@fa63c536e494cd82988de510c0e80e992f317de9 # v0.14.1
+
+    - name: Login to cpar.dev
+      shell: bash
+      run: |
+        set -euo pipefail
+        d="$(mktemp -d)"
+        trap 'rm -rf "$d"' EXIT
+        cat >"$d/config.yaml" <<EOF
+        apiVersion: mirror.plugin.fluxcd.io/v1beta2
+        kind: Config
+        hosts:
+          - host: cpar.dev
+            credential:
+              provider: github
+              username: cpar
+        EOF
+
+        mkdir -p "$HOME/.docker"
+        flux-mirror login \
+          -f "$d/config.yaml" \
+          --host cpar.dev \
+          --docker-config "$HOME/.docker" \
+          --plaintext
