@@ -1,4 +1,4 @@
-name: License scan
+name: License scan - Flux
 
 on:
   workflow_dispatch:
@@ -6,21 +6,28 @@ on:
       version:
         description: 'Flux version'
         required: false
+  schedule:
+    - cron: '00 6 * * 1'
   push:
     branches:
       - 'main'
       - 'license-*'
 
+permissions:
+  contents: read
+
 jobs:
-  trivy:
+  version:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Resolve version
-        id: release
+        id: resolve
         shell: bash
         run: |
           VERSION="${{ github.event.inputs.version }}"
@@ -28,27 +35,13 @@ jobs:
             VERSION="$(cat fluxcd/ghcr.io/images/VERSION)"
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-      - name: Checkout Flux
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: fluxcd/flux2
-          ref: ${{ steps.release.outputs.version }}
-      - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: 'go.mod'
-      - name: Download Flux dependencies
-        run: make tidy
-      - name: Setup Trivy
-        run: |
-          sudo apt-get install wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install trivy
-      - name: License report
-        run: |
-          trivy fs -q --format table --scanners license --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL ./go.mod
-      - name: License check
-        run: |
-          trivy fs -q --format table --scanners license --severity UNKNOWN,HIGH,CRITICAL ./go.mod --exit-code 1
+
+  license:
+    needs: version
+    permissions:
+      contents: read
+    uses: ./.github/workflows/_scan-license.yaml
+    with:
+      product: Flux
+      repository: fluxcd/flux2
+      version: ${{ needs.version.outputs.version }}

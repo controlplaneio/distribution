@@ -1,0 +1,49 @@
+# Reusable license scan for one distribution's upstream Go module.
+name: scan license
+
+on:
+  workflow_call:
+    inputs:
+      product:
+        description: 'product name, used in step names'
+        required: true
+        type: string
+      repository:
+        description: 'upstream repository, e.g. openbao/openbao'
+        required: true
+        type: string
+      version:
+        description: 'upstream tag to scan'
+        required: true
+        type: string
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout ${{ inputs.product }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.version }}
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+      - name: Download Go dependencies
+        run: go mod download
+      - name: Setup Trivy
+        run: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+      - name: License report
+        run: |
+          trivy fs -q --format table --scanners license --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL ./go.mod
+      - name: License check
+        run: |
+          trivy fs -q --format table --scanners license --severity UNKNOWN,HIGH,CRITICAL ./go.mod --exit-code 1

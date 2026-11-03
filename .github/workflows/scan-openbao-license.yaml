@@ -1,0 +1,47 @@
+name: License scan - OpenBao
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'OpenBao version'
+        required: false
+  schedule:
+    - cron: '00 6 * * 1'
+  push:
+    branches:
+      - 'main'
+      - 'license-*'
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Resolve version
+        id: resolve
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION="$(cat openbao/ghcr.io/images/VERSION)"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+  license:
+    needs: version
+    permissions:
+      contents: read
+    uses: ./.github/workflows/_scan-license.yaml
+    with:
+      product: OpenBao
+      repository: openbao/openbao
+      version: ${{ needs.version.outputs.version }}
