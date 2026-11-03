@@ -40,7 +40,7 @@ jobs:
           if [ "$VERSION" = "all" ]; then
             versions="$(find "${PRODUCT}/ghcr.io/images" -mindepth 1 -maxdepth 1 \
               -type d -name 'v*' -printf '%f\n' | sort -V \
-              | jq -R -s 'split("\n") | map(select(length > 0))')"
+              | jq -cR -s 'split("\n") | map(select(length > 0))')"
           elif [ -z "$VERSION" ]; then
             v="$(cat "${PRODUCT}/ghcr.io/images/VERSION")"
             versions="$(jq -cn --arg v "$v" '[$v]')"
