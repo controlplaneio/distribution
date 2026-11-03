@@ -35,8 +35,6 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: >-
-        openbao/ghcr.io/images/%VERSION%/enterprise-ubi.yaml
-        openbao/ghcr.io/images/%VERSION%/enterprise-distroless.yaml
         openbao/cpar.dev/images/%VERSION%/enterprise-ubi.yaml
         openbao/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
       version-file: openbao/ghcr.io/images/VERSION

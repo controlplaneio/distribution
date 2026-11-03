@@ -170,6 +170,7 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
+      max-parallel: 8
       matrix:
         target: ${{ fromJSON(needs.discover.outputs.targets) }}
     name: scan ${{ matrix.target.version }} ${{ matrix.target.image }}${{ matrix.target.label != '' && format(' ({0})', matrix.target.label) || '' }}
@@ -215,7 +216,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          cache: false
+          cache: true
           image-ref: ${{ matrix.target.image }}
           format: 'table'
           exit-code: '1'

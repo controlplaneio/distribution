@@ -35,7 +35,6 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: >-
-        dex/ghcr.io/images/%VERSION%/enterprise-distroless-fips.yaml
         dex/cpar.dev/images/%VERSION%/enterprise-distroless-fips.yaml
       version-file: dex/ghcr.io/images/VERSION
       version: ${{ inputs.version }}

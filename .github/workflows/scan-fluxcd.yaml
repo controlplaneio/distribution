@@ -38,8 +38,6 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: >-
-        fluxcd/ghcr.io/images/%VERSION%/enterprise-alpine.yaml
-        fluxcd/ghcr.io/images/%VERSION%/enterprise-distroless.yaml
         fluxcd/cpar.dev/images/%VERSION%/enterprise-alpine.yaml
         fluxcd/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
       version-file: fluxcd/ghcr.io/images/VERSION
@@ -62,7 +60,6 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: >-
-        fluxcd/ghcr.io/addons/flux-mcp-enterprise/images/%VERSION%/enterprise-*.yaml
         fluxcd/cpar.dev/addons/flux-mcp-enterprise/images/%VERSION%/enterprise-*.yaml
       version-dir: fluxcd/ghcr.io/addons/flux-mcp-enterprise/images
       version: ${{ inputs.version }}
@@ -84,7 +81,6 @@ jobs:
       id-token: write
     uses: ./.github/workflows/_scan-pins.yaml
     with:
-      pins: fluxcd/ghcr.io/images/%VERSION%/upstream-alpine.yaml
       version-file: fluxcd/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
@@ -122,7 +118,7 @@ jobs:
       continue-on-error: true
       uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
       with:
-        cache: false
+        cache: true
         image-ref: ${{ steps.image.outputs.fo }}
         format: table
         exit-code: '1'
