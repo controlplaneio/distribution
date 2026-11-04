@@ -18,7 +18,7 @@ set -euo pipefail
 
 TARGET="${TARGET:?TARGET is required}"
 VERSION="${VERSION:?VERSION is required}"
-CHART_VERSION="${CHART_VERSION:-skip}"
+CHART_VERSION="${CHART_VERSION:-}"
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
