@@ -129,12 +129,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_READONLY }}
-      - name: Helm login to GitHub Container Registry
-        if: inputs.target != 'spire'
-        shell: bash
-        env:
-          GHCR_READONLY: ${{ secrets.GHCR_READONLY }}
-        run: echo "$GHCR_READONLY" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Login to ControlPlane Artifact Registry
         uses: ./.github/actions/cpar-login
       - name: Setup Flux
