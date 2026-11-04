@@ -7,7 +7,7 @@ branding:
 inputs:
   registry:
     description: "Distribution Container Registry"
-    default: "ghcr.io/controlplaneio-fluxcd"
+    default: "cpar.dev/fluxcd"
     required: true
   variant:
     description: "Base image variant e.g. alpine, distroless or distroless-fips"
@@ -25,7 +25,7 @@ inputs:
     required: false
   distribution-url:
     description: "Distribution images info URL"
-    default: "https://raw.githubusercontent.com/controlplaneio/distribution/main/fluxcd/ghcr.io%20%28deprecated%29/images"
+    default: "https://raw.githubusercontent.com/controlplaneio/distribution/main/fluxcd/cpar.dev/images"
     required: false
 runs:
   using: composite
@@ -44,7 +44,7 @@ runs:
       shell: bash
       run: |
         registry=${{ inputs.registry }}
-        if [[ "${{ inputs.registry }}" == "ghcr.io/controlplaneio-fluxcd" ]]; then
+        if [[ "${{ inputs.registry }}" == "cpar.dev/fluxcd" ]]; then
           registry=${{ inputs.registry }}/${{ inputs.variant }}
         fi
         cd ${{ inputs.path }}
@@ -56,7 +56,7 @@ runs:
     - name: "Update images digests"
       shell: bash
       run: |
-        if [[ "${{ inputs.registry }}" != "ghcr.io/controlplaneio-fluxcd" ]]; then
+        if [[ "${{ inputs.registry }}" != "cpar.dev/fluxcd" ]]; then
           exit 0
         fi
         cd ${{ inputs.path }}
