@@ -37,7 +37,7 @@ jobs:
         with:
           path: clusters/production/flux-system
           image-pull-secret: flux-enterprise-auth
-          registry: ghcr.io/controlplaneio-fluxcd
+          registry: cpar.dev/fluxcd
           variant: distroless
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
@@ -60,7 +60,7 @@ when new versions of the Enterprise Distribution are available.
 | Name                | Description                                                         | Default                                                                                                                                 |
 |---------------------|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | `path`              | Path to the flux-system dir e.g. `clusters/production/flux-system/` |                                                                                                                                         |
-| `registry`          | Container Registry Address                                          | `ghcr.io/controlplaneio-fluxcd`                                                                                                         |
+| `registry`          | Container Registry Address                                          | `cpar.dev/fluxcd`                                                                                                                       |
 | `variant`           | Base image OS e.g. `alpine`, `distroless` or `distroless-fips`                         | `alpine`                                                                                                             |
 | `image-pull-secret` | Name of the Kubernetes image pull secret                            | `flux-enterprise-auth`                                                                                                                  |
 | `components`        | Flux components comma separated list                                | `source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller` |
