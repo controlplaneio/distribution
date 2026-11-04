@@ -58,8 +58,8 @@ on:
         default: 'Distribution'
     secrets:
       pull-token:
-        description: 'registry read token for the scanned images'
-        required: true
+        description: 'registry read token for GHCR images'
+        required: false
       ZULIP_EMAIL:
         required: false
       ZULIP_API_KEY:

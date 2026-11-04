@@ -18,6 +18,15 @@ cryptography and Helm charts published to the ControlPlane Artifact Registry
 - [Upstream SPIRE documentation](https://spiffe.io/docs/latest/spire-about/)
 - [Upstream SPIFFE CSI driver documentation](https://github.com/spiffe/spiffe-csi)
 
+## Version tracking
+
+The independently versioned components are tracked in:
+
+- `controller-manager-version`
+- `spiffe-version`
+- `spire-chart-version`
+- `spire-crds-chart-version`
+
 ## Supply chain security
 
 The distribution artifacts are built and published by ControlPlane with

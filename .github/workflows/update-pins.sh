@@ -97,17 +97,10 @@ EOF
 }
 
 write_cpar_chart_pin() {
-  local ghcr_repo="$1" cpar_repo="$2" chart_name="$3" cpar_dir="$4" version="${5:-}"
-  local tmp pulled cpar_digest
+  local cpar_repo="$1" chart_name="$2" cpar_dir="$3" version="$4"
+  local cpar_digest
 
-  if [ -z "$version" ]; then
-    tmp="$(mktemp -d)"
-    pulled="$(helm pull "oci://${ghcr_repo}" --destination "$tmp" 2>&1)"
-    echo "$pulled"
-    version="$(echo "$pulled" | awk -F: '/^Pulled:/ {print $NF}')"
-    rm -rf "$tmp"
-  fi
-  [ -n "$version" ] || { echo "could not resolve chart version for ${ghcr_repo}" >&2; exit 1; }
+  [ -n "$version" ] || { echo "chart version is required for ${cpar_repo}" >&2; exit 1; }
 
   cpar_digest="$(resolve_digest "${cpar_repo}:${version}")"
   mkdir -p "${cpar_dir}/${version}"
@@ -268,22 +261,21 @@ EOF
     printf '%s\n' "$VERSION" >"${CPAR_IMAGES_DIR}/VERSION"
 
     if [ "$CHART_VERSION" != "skip" ]; then
-      spire_chart_version=""
+      spire_chart_version="$(cat "${ROOT_DIR}/spire/spire-chart-version")"
+      crds_chart_version="$(cat "${ROOT_DIR}/spire/spire-crds-chart-version")"
       if [ -n "$CHART_VERSION" ] && [ "$CHART_VERSION" != "all" ]; then
         spire_chart_version="$CHART_VERSION"
       fi
       write_cpar_chart_pin \
-        "ghcr.io/controlplaneio/spire/charts/spire" \
         "cpar.dev/spire/charts/spire" \
         spire \
         "${ROOT_DIR}/spire/cpar.dev/charts/spire" \
         "$spire_chart_version"
       write_cpar_chart_pin \
-        "ghcr.io/controlplaneio/spire/charts/spire-crds" \
         "cpar.dev/spire/charts/spire-crds" \
         spire-crds \
         "${ROOT_DIR}/spire/cpar.dev/charts/spire-crds" \
-        ""
+        "$crds_chart_version"
     fi
     ;;
 
