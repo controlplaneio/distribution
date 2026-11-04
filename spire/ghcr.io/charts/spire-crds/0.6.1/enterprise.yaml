@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: spire-crds
+spec:
+  url: oci://ghcr.io/controlplaneio/spire/charts/spire-crds
+  ref:
+    tag: 0.6.1
+    digest: sha256:62b459f6eb27269f0199683fb13d967861cff7cd0b334f8cf92b383a7c56616c

@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: spire
+spec:
+  url: oci://ghcr.io/controlplaneio/spire/charts/spire
+  ref:
+    tag: 0.30.4
+    digest: sha256:da41abc47ff837a4768734073f686c2869ac96b9afa0e6966c76bc68fc8d2f76
