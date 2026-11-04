@@ -22,7 +22,6 @@ jobs:
       ignore-prefix: fluxcd
       alert: Flux Enterprise Distroless
     secrets:
-      pull-token: ${{ secrets.GHCR_READONLY }}
       ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
       ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
       ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}
