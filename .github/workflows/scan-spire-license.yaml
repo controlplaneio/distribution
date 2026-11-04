@@ -28,6 +28,9 @@ jobs:
       version-file: spire/ghcr.io/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '1'
+      # github.com/google/go-tpm-tools ships a custom TPM-2 license that
+      # Trivy classifies as UNKNOWN at less than full confidence.
+      license-confidence-level: '1.0'
       alert: SPIRE License
     secrets:
       ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
