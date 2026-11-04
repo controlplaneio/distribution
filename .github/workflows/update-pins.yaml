@@ -123,12 +123,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Login to GitHub Container Registry
+        if: inputs.target != 'spire'
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_READONLY }}
       - name: Helm login to GitHub Container Registry
+        if: inputs.target != 'spire'
         shell: bash
         env:
           GHCR_READONLY: ${{ secrets.GHCR_READONLY }}
