@@ -30,7 +30,7 @@ jobs:
 |--------------------|----------------------------------------------|------------------------------------------------------------------------------------|
 | `version`          | Distribution version e.g. v2.X.Y             | The latest stable release                                                          |
 | `bindir`           | Alternative location for the Flux CLI binary | `$RUNNER_TOOL_CACHE`                                                               |
-| `distribution-url` | Distribution images info URL                 | `https://raw.githubusercontent.com/controlplaneio/distribution/main/fluxcd/ghcr.io/images` |
+| `distribution-url` | Distribution images info URL                 | `https://raw.githubusercontent.com/controlplaneio/distribution/main/fluxcd/ghcr.io%20%28deprecated%29/images` |
 
 ## Action Outputs
 

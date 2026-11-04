@@ -25,7 +25,7 @@ jobs:
     with:
       product: Dex
       repository: dexidp/dex
-      version-file: dex/ghcr.io/images/VERSION
+      version-file: dex/ghcr.io (deprecated)/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '1'
       alert: Dex License

@@ -1,7 +1,6 @@
-# ghcr.io
+# ghcr.io (deprecated)
 
-This directory pins the OpenBao distribution artifacts published to
-`ghcr.io`.
+This directory pins the Dex distribution artifacts published to `ghcr.io`.
 
 > [!WARNING]
 > The GitHub Container Registry (`ghcr.io`) is deprecated. Please contact us

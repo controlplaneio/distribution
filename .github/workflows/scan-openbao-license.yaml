@@ -25,7 +25,7 @@ jobs:
     with:
       product: OpenBao
       repository: openbao/openbao
-      version-file: openbao/ghcr.io/images/VERSION
+      version-file: openbao/ghcr.io (deprecated)/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
       # github.com/hashicorp/vic ships an aggregate open_source_licenses

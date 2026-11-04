@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: openbao/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
-      version-file: openbao/ghcr.io/images/VERSION
+      version-file: openbao/ghcr.io (deprecated)/images/VERSION
       minor-count: '1'
       ignore-prefix: openbao
       alert: OpenBao Enterprise Distroless

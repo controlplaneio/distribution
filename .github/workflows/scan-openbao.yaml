@@ -32,7 +32,7 @@ jobs:
     with:
       pins: >-
         openbao/cpar.dev/images/%VERSION%/enterprise-ubi.yaml
-      version-file: openbao/ghcr.io/images/VERSION
+      version-file: openbao/ghcr.io (deprecated)/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
       ignore-prefix: openbao

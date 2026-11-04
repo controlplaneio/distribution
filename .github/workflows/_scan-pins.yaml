@@ -8,11 +8,11 @@ on:
   workflow_call:
     inputs:
       pins:
-        description: 'space-separated pin file paths or globs; %VERSION% is replaced'
+        description: 'newline-separated pin file paths or globs; %VERSION% is replaced'
         required: true
         type: string
       version-file:
-        description: 'file containing the product version (e.g. fluxcd/ghcr.io/images/VERSION)'
+        description: 'file containing the product version (e.g. fluxcd/ghcr.io (deprecated)/images/VERSION)'
         required: false
         type: string
         default: ''
@@ -137,9 +137,11 @@ jobs:
               1) label="" ;;
               *) label="N-$((rank - 1))" ;;
             esac
-            for pattern in $PINS; do
+            while IFS= read -r pattern; do
+              [ -n "$pattern" ] || continue
               pattern="${pattern//%VERSION%/$version}"
-              for file in $pattern; do
+              while IFS= read -r file; do
+                [ -n "$file" ] || continue
                 [ -f "$file" ] || continue
                 while IFS= read -r image; do
                   [ -n "$image" ] || continue
@@ -148,8 +150,8 @@ jobs:
                   /^[[:space:]]*- name:/ { name=$3 }
                   /^[[:space:]]*newTag:/ { if (name != "") print name ":" $2 }
                 ' "$file")
-              done
-            done
+              done < <(compgen -G "$pattern" || true)
+            done <<<"$PINS"
           done
 
           unique="$(printf '%s' "$targets" | sort -u)"

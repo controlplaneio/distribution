@@ -11,7 +11,7 @@ on:
         required: true
         type: string
       version-file:
-        description: 'file containing the product version (e.g. fluxcd/ghcr.io/images/VERSION)'
+        description: 'file containing the product version (e.g. fluxcd/ghcr.io (deprecated)/images/VERSION)'
         required: false
         type: string
         default: ''

@@ -56,7 +56,7 @@ jobs:
             fi
           fi
           if [ -z "$VERSION" ]; then
-            VERSION="$(cat fluxcd/ghcr.io/images/VERSION)"
+            VERSION="$(cat "fluxcd/ghcr.io (deprecated)/images/VERSION")"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Setup Flux
