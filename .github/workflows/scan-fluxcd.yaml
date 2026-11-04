@@ -35,7 +35,7 @@ jobs:
     with:
       pins: >-
         fluxcd/cpar.dev/images/%VERSION%/enterprise-alpine.yaml
-      version-file: fluxcd/ghcr.io/images/VERSION
+      version-file: fluxcd/ghcr.io (deprecated)/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
       ignore-prefix: fluxcd
@@ -56,7 +56,7 @@ jobs:
     with:
       pins: >-
         fluxcd/cpar.dev/addons/flux-mcp-enterprise/images/%VERSION%/enterprise-*.yaml
-      version-dir: fluxcd/ghcr.io/addons/flux-mcp-enterprise/images
+      version-dir: fluxcd/ghcr.io (deprecated)/addons/flux-mcp-enterprise/images
       version: ${{ inputs.version }}
       minor-count: '1'
       ignore-prefix: fluxcd
@@ -76,8 +76,8 @@ jobs:
       id-token: write
     uses: ./.github/workflows/_scan-pins.yaml
     with:
-      pins: fluxcd/ghcr.io/images/%VERSION%/upstream-alpine.yaml
-      version-file: fluxcd/ghcr.io/images/VERSION
+      pins: fluxcd/ghcr.io (deprecated)/images/%VERSION%/upstream-alpine.yaml
+      version-file: fluxcd/ghcr.io (deprecated)/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '1'
       ignore-prefix: fluxcd

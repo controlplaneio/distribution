@@ -96,6 +96,35 @@ EOF
   echo "wrote chart ${version} for ${ghcr_repo}"
 }
 
+write_cpar_chart_pin() {
+  local ghcr_repo="$1" cpar_repo="$2" chart_name="$3" cpar_dir="$4" version="${5:-}"
+  local tmp pulled cpar_digest
+
+  if [ -z "$version" ]; then
+    tmp="$(mktemp -d)"
+    pulled="$(helm pull "oci://${ghcr_repo}" --destination "$tmp" 2>&1)"
+    echo "$pulled"
+    version="$(echo "$pulled" | awk -F: '/^Pulled:/ {print $NF}')"
+    rm -rf "$tmp"
+  fi
+  [ -n "$version" ] || { echo "could not resolve chart version for ${ghcr_repo}" >&2; exit 1; }
+
+  cpar_digest="$(resolve_digest "${cpar_repo}:${version}")"
+  mkdir -p "${cpar_dir}/${version}"
+  cat >"${cpar_dir}/${version}/enterprise.yaml" <<EOF
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: ${chart_name}
+spec:
+  url: oci://${cpar_repo}
+  ref:
+    tag: ${version}
+    digest: ${cpar_digest}
+EOF
+  echo "wrote chart ${version} for ${cpar_repo}"
+}
+
 advance_version() {
   local ghcr_dir="$1" cpar_dir="$2" current newest
   current="$(cat "${ghcr_dir}/VERSION" 2>/dev/null || true)"
@@ -122,7 +151,7 @@ flux_refs() {
 
 case "$TARGET" in
   fluxcd)
-    GHCR_IMAGES_DIR="${ROOT_DIR}/fluxcd/ghcr.io/images"
+    GHCR_IMAGES_DIR="${ROOT_DIR}/fluxcd/ghcr.io (deprecated)/images"
     CPAR_IMAGES_DIR="${ROOT_DIR}/fluxcd/cpar.dev/images"
     GHCR_BASE="ghcr.io/controlplaneio-fluxcd"
     CPAR_BASE="cpar.dev/fluxcd"
@@ -160,7 +189,7 @@ case "$TARGET" in
     ;;
 
   openbao)
-    GHCR_IMAGES_DIR="${ROOT_DIR}/openbao/ghcr.io/images"
+    GHCR_IMAGES_DIR="${ROOT_DIR}/openbao/ghcr.io (deprecated)/images"
     CPAR_IMAGES_DIR="${ROOT_DIR}/openbao/cpar.dev/images"
     GHCR_BASE="ghcr.io/controlplaneio"
     CPAR_BASE="cpar.dev/openbao"
@@ -189,7 +218,7 @@ case "$TARGET" in
     ;;
 
   dex)
-    GHCR_IMAGES_DIR="${ROOT_DIR}/dex/ghcr.io/images"
+    GHCR_IMAGES_DIR="${ROOT_DIR}/dex/ghcr.io (deprecated)/images"
     CPAR_IMAGES_DIR="${ROOT_DIR}/dex/cpar.dev/images"
     ghcr_image_repo="ghcr.io/controlplaneio-fluxcd/distroless-fips/dex"
     cpar_image_repo="cpar.dev/dex/distroless-fips/dex"
@@ -204,23 +233,22 @@ case "$TARGET" in
     case "$CHART_VERSION" in
       skip) ;;
       all)
-        for dir in "${ROOT_DIR}/dex/ghcr.io/charts"/*/; do
+        for dir in "${ROOT_DIR}/dex/ghcr.io (deprecated)/charts"/*/; do
           [ -d "$dir" ] || continue
           write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" dex \
-            "${ROOT_DIR}/dex/ghcr.io/charts" "${ROOT_DIR}/dex/cpar.dev/charts" \
+            "${ROOT_DIR}/dex/ghcr.io (deprecated)/charts" "${ROOT_DIR}/dex/cpar.dev/charts" \
             "$(basename "$dir")"
         done
         ;;
       *)
         write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" dex \
-          "${ROOT_DIR}/dex/ghcr.io/charts" "${ROOT_DIR}/dex/cpar.dev/charts" \
+          "${ROOT_DIR}/dex/ghcr.io (deprecated)/charts" "${ROOT_DIR}/dex/cpar.dev/charts" \
           "$CHART_VERSION"
         ;;
     esac
     ;;
 
   spire)
-    GHCR_IMAGES_DIR="${ROOT_DIR}/spire/ghcr.io/images"
     CPAR_IMAGES_DIR="${ROOT_DIR}/spire/cpar.dev/images"
     spire_tag="${VERSION#v}"
     cm_tag="$(cat "${ROOT_DIR}/spire/controller-manager-version")"
@@ -229,42 +257,38 @@ case "$TARGET" in
     csi_tag="${csi_tag#v}"
 
     refs="$(cat <<EOF
-ghcr.io/controlplaneio/spire/distroless-fips/spire-server:${spire_tag}
-ghcr.io/controlplaneio/spire/distroless-fips/spire-agent:${spire_tag}
-ghcr.io/controlplaneio/spire/distroless-fips/oidc-discovery-provider:${spire_tag}
-ghcr.io/controlplaneio/spire/distroless-fips/spire-controller-manager:${cm_tag}
-ghcr.io/controlplaneio/spiffe/distroless-fips/spiffe-csi-driver:${csi_tag}
+cpar.dev/spire/distroless-fips/spire-server:${spire_tag}
+cpar.dev/spire/distroless-fips/spire-agent:${spire_tag}
+cpar.dev/spire/distroless-fips/oidc-discovery-provider:${spire_tag}
+cpar.dev/spire/distroless-fips/spire-controller-manager:${cm_tag}
+cpar.dev/spiffe/distroless-fips/spiffe-csi-driver:${csi_tag}
 EOF
 )"
-    write_pin_file "${GHCR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" <<<"$refs"
-    cpar_refs="$(sed 's#^ghcr.io/controlplaneio/#cpar.dev/#' <<<"$refs")"
-    write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" <<<"$cpar_refs"
-    advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
+    write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" <<<"$refs"
+    printf '%s\n' "$VERSION" >"${CPAR_IMAGES_DIR}/VERSION"
 
     if [ "$CHART_VERSION" != "skip" ]; then
       spire_chart_version=""
       if [ -n "$CHART_VERSION" ] && [ "$CHART_VERSION" != "all" ]; then
         spire_chart_version="$CHART_VERSION"
       fi
-      write_chart_pin \
+      write_cpar_chart_pin \
         "ghcr.io/controlplaneio/spire/charts/spire" \
         "cpar.dev/spire/charts/spire" \
         spire \
-        "${ROOT_DIR}/spire/ghcr.io/charts/spire" \
         "${ROOT_DIR}/spire/cpar.dev/charts/spire" \
         "$spire_chart_version"
-      write_chart_pin \
+      write_cpar_chart_pin \
         "ghcr.io/controlplaneio/spire/charts/spire-crds" \
         "cpar.dev/spire/charts/spire-crds" \
         spire-crds \
-        "${ROOT_DIR}/spire/ghcr.io/charts/spire-crds" \
         "${ROOT_DIR}/spire/cpar.dev/charts/spire-crds" \
         ""
     fi
     ;;
 
   flux-mcp-enterprise)
-    GHCR_ADDON_DIR="${ROOT_DIR}/fluxcd/ghcr.io/addons/flux-mcp-enterprise"
+    GHCR_ADDON_DIR="${ROOT_DIR}/fluxcd/ghcr.io (deprecated)/addons/flux-mcp-enterprise"
     CPAR_ADDON_DIR="${ROOT_DIR}/fluxcd/cpar.dev/addons/flux-mcp-enterprise"
     ghcr_image_repo="ghcr.io/controlplaneio-fluxcd/flux-mcp-enterprise"
     cpar_image_repo="cpar.dev/fluxcd/distroless-fips/flux-mcp-enterprise"

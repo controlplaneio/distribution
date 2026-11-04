@@ -46,11 +46,11 @@ jobs:
         run: |
           set -euo pipefail
           case "$TARGET" in
-            fluxcd) images_dir="fluxcd/ghcr.io/images" ;;
-            openbao) images_dir="openbao/ghcr.io/images" ;;
-            dex) images_dir="dex/ghcr.io/images" ;;
-            spire) images_dir="spire/ghcr.io/images" ;;
-            flux-mcp-enterprise) images_dir="fluxcd/ghcr.io/addons/flux-mcp-enterprise/images" ;;
+            fluxcd) images_dir="fluxcd/ghcr.io (deprecated)/images" ;;
+            openbao) images_dir="openbao/ghcr.io (deprecated)/images" ;;
+            dex) images_dir="dex/ghcr.io (deprecated)/images" ;;
+            spire) images_dir="spire/cpar.dev/images" ;;
+            flux-mcp-enterprise) images_dir="fluxcd/ghcr.io (deprecated)/addons/flux-mcp-enterprise/images" ;;
             *) echo "unknown target: $TARGET" >&2; exit 1 ;;
           esac
 
@@ -159,6 +159,6 @@ jobs:
           title: Update ${{ inputs.target }} ${{ matrix.entry.version }} pins
           body: |
             Refresh image and chart pins for `${{ inputs.target }}`
-            `${{ matrix.entry.version }}` in both `ghcr.io` and `cpar.dev`.
+            `${{ matrix.entry.version }}` ${{ inputs.target == 'spire' && 'in `cpar.dev`.' || 'in both `ghcr.io` and `cpar.dev`.' }}
           labels: |
             area/updates

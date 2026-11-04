@@ -23,5 +23,4 @@ cryptography and Helm charts published to the ControlPlane Artifact Registry
 The distribution artifacts are built and published by ControlPlane with
 signed provenance and SBOM attestations.
 
-- [`cpar.dev`](cpar.dev) — main distribution channel
-- [`ghcr.io`](ghcr.io) — deprecated legacy registry
+- [`cpar.dev`](cpar.dev) — distribution channel

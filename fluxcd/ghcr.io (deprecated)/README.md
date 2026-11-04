@@ -1,4 +1,4 @@
-# ghcr.io
+# ghcr.io (deprecated)
 
 This directory pins the Flux CD distribution artifacts published to
 `ghcr.io`.

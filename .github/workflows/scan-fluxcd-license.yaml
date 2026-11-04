@@ -25,7 +25,7 @@ jobs:
     with:
       product: Flux
       repository: fluxcd/flux2
-      version-file: fluxcd/ghcr.io/images/VERSION
+      version-file: fluxcd/ghcr.io (deprecated)/images/VERSION
       version: ${{ inputs.version }}
       minor-count: '3'
       alert: Flux License

@@ -1,6 +1,6 @@
-# ghcr.io
+# ghcr.io (deprecated)
 
-This directory pins the SPIRE distribution artifacts published to
+This directory pins the OpenBao distribution artifacts published to
 `ghcr.io`.
 
 > [!WARNING]

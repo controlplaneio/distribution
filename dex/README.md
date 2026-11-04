@@ -22,4 +22,4 @@ The distribution artifacts are built and published by ControlPlane with
 signed provenance and SBOM attestations.
 
 - [`cpar.dev`](cpar.dev) — main distribution channel
-- [`ghcr.io`](ghcr.io) — deprecated legacy registry
+- [`ghcr.io (deprecated)`](ghcr.io%20%28deprecated%29) — legacy registry

@@ -13,7 +13,7 @@ inputs:
     required: false
   distribution-url:
     description: Distribution images info URL
-    default: https://raw.githubusercontent.com/controlplaneio/distribution/main/fluxcd/ghcr.io/images
+    default: https://raw.githubusercontent.com/controlplaneio/distribution/main/fluxcd/ghcr.io%20%28deprecated%29/images
     required: false
 outputs:
   version:
