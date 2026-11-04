@@ -1,0 +1,5 @@
+# The vulnerabilities listed here have no effect on the SPIRE distribution,
+# either because the vulnerable code paths are not used or because the CVEs
+# have been dismissed by upstream maintainers.
+#
+# Entries are also mirrored as OpenVEX statements under vex/<minor>.json.

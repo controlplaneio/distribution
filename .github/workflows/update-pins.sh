@@ -4,7 +4,7 @@
 # Called by .github/workflows/update-pins.yaml.
 #
 # Required env:
-#   TARGET  - fluxcd, openbao, dex, or flux-mcp-enterprise
+#   TARGET  - fluxcd, openbao, dex, spire, or flux-mcp-enterprise
 #   VERSION - target image version (e.g. v2.10.0 / v2.46.1 / v0.4.4)
 # Optional env:
 #   CHART_VERSION - chart version to update. "skip" updates images only.
@@ -217,6 +217,50 @@ case "$TARGET" in
           "$CHART_VERSION"
         ;;
     esac
+    ;;
+
+  spire)
+    GHCR_IMAGES_DIR="${ROOT_DIR}/spire/ghcr.io/images"
+    CPAR_IMAGES_DIR="${ROOT_DIR}/spire/cpar.dev/images"
+    spire_tag="${VERSION#v}"
+    cm_tag="$(cat "${ROOT_DIR}/spire/controller-manager-version")"
+    cm_tag="${cm_tag#v}"
+    csi_tag="$(cat "${ROOT_DIR}/spire/spiffe-version")"
+    csi_tag="${csi_tag#v}"
+
+    refs="$(cat <<EOF
+ghcr.io/controlplaneio/spire/distroless-fips/spire-server:${spire_tag}
+ghcr.io/controlplaneio/spire/distroless-fips/spire-agent:${spire_tag}
+ghcr.io/controlplaneio/spire/distroless-fips/oidc-discovery-provider:${spire_tag}
+ghcr.io/controlplaneio/spire/distroless-fips/spire-controller-manager:${cm_tag}
+ghcr.io/controlplaneio/spiffe/distroless-fips/spiffe-csi-driver:${csi_tag}
+EOF
+)"
+    write_pin_file "${GHCR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" <<<"$refs"
+    cpar_refs="$(sed 's#^ghcr.io/controlplaneio/#cpar.dev/#' <<<"$refs")"
+    write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" <<<"$cpar_refs"
+    advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
+
+    if [ "$CHART_VERSION" != "skip" ]; then
+      spire_chart_version=""
+      if [ -n "$CHART_VERSION" ] && [ "$CHART_VERSION" != "all" ]; then
+        spire_chart_version="$CHART_VERSION"
+      fi
+      write_chart_pin \
+        "ghcr.io/controlplaneio/spire/charts/spire" \
+        "cpar.dev/spire/charts/spire" \
+        spire \
+        "${ROOT_DIR}/spire/ghcr.io/charts/spire" \
+        "${ROOT_DIR}/spire/cpar.dev/charts/spire" \
+        "$spire_chart_version"
+      write_chart_pin \
+        "ghcr.io/controlplaneio/spire/charts/spire-crds" \
+        "cpar.dev/spire/charts/spire-crds" \
+        spire-crds \
+        "${ROOT_DIR}/spire/ghcr.io/charts/spire-crds" \
+        "${ROOT_DIR}/spire/cpar.dev/charts/spire-crds" \
+        ""
+    fi
     ;;
 
   flux-mcp-enterprise)
