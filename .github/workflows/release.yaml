@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*/v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          product="${TAG%%/*}"
+          version="${TAG#*/}"
+          if [ "$product" = "$TAG" ] || [ -z "$version" ]; then
+            echo "invalid release tag '$TAG'; expected <product>/v<semver>" >&2
+            exit 1
+          fi
+
+          case "$product" in
+            fluxcd)
+              minor="${version%.*}"
+              notes="See the [distribution release notes](https://github.com/${GITHUB_REPOSITORY}/blob/main/fluxcd/releases/release-${minor}.md) for more details."
+              ;;
+            openbao)
+              notes="See the [OpenBao release notes](https://github.com/openbao/openbao/releases/tag/${version}) for more details."
+              ;;
+            dex)
+              notes="See the [Dex release notes](https://github.com/dexidp/dex/releases/tag/${version}) for more details."
+              ;;
+            spire)
+              notes="See the [SPIRE release notes](https://github.com/spiffe/spire/releases/tag/${version}) for more details."
+              ;;
+            *)
+              echo "unknown release product '$product'" >&2
+              exit 1
+              ;;
+          esac
+
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "$notes" \
+            --verify-tag
