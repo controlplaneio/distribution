@@ -9,7 +9,7 @@ bundle: {
 		// Container registry image pull token
 		token: string @timoni(runtime:string:TOKEN)
 		// Container registry address
-		registry: "cpar.dev/fluxcd/distroless" @timoni(runtime:string:REGISTRY)
+		registry: "cpar.dev/fluxcd/distroless-fips" @timoni(runtime:string:REGISTRY)
 		// Flux AIO version e.g. 2.2.3-0
 		// To list available versions run:
 		// timoni mod ls oci://ghcr.io/stefanprodan/modules/flux-aio
