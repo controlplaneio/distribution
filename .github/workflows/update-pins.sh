@@ -55,17 +55,17 @@ write_pin_file() {
 
 write_chart_pin() {
   local ghcr_repo="$1" cpar_repo="$2" chart_name="$3" \
-    ghcr_dir="$4" cpar_dir="$5" version="$6"
+    ghcr_dir="$4" cpar_dir="$5" version="$6" lookup_repo="${7:-$1}"
   local tmp pulled ghcr_digest cpar_digest
 
   if [ -z "$version" ]; then
     tmp="$(mktemp -d)"
-    pulled="$(helm pull "oci://${ghcr_repo}" --destination "$tmp" 2>&1)"
+    pulled="$(helm pull "oci://${lookup_repo}" --destination "$tmp" 2>&1)"
     echo "$pulled"
     version="$(echo "$pulled" | awk -F: '/^Pulled:/ {print $NF}')"
     rm -rf "$tmp"
   fi
-  [ -n "$version" ] || { echo "could not resolve chart version for ${ghcr_repo}" >&2; exit 1; }
+  [ -n "$version" ] || { echo "could not resolve chart version for ${lookup_repo}" >&2; exit 1; }
 
   ghcr_digest="$(resolve_digest "${ghcr_repo}:${version}")"
   cpar_digest="$(resolve_digest "${cpar_repo}:${version}")"
@@ -216,12 +216,12 @@ case "$TARGET" in
       ''|all)
         write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" openbao \
           "${ROOT_DIR}/openbao/ghcr.io (deprecated)/charts" \
-          "${ROOT_DIR}/openbao/cpar.dev/charts" ""
+          "${ROOT_DIR}/openbao/cpar.dev/charts" "" "$cpar_chart_repo"
         ;;
       *)
         write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" openbao \
           "${ROOT_DIR}/openbao/ghcr.io (deprecated)/charts" \
-          "${ROOT_DIR}/openbao/cpar.dev/charts" "$CHART_VERSION"
+          "${ROOT_DIR}/openbao/cpar.dev/charts" "$CHART_VERSION" "$cpar_chart_repo"
         ;;
     esac
     ;;
@@ -246,13 +246,13 @@ case "$TARGET" in
           [ -d "$dir" ] || continue
           write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" dex \
             "${ROOT_DIR}/dex/ghcr.io (deprecated)/charts" "${ROOT_DIR}/dex/cpar.dev/charts" \
-            "$(basename "$dir")"
+            "$(basename "$dir")" "$cpar_chart_repo"
         done
         ;;
       *)
         write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" dex \
           "${ROOT_DIR}/dex/ghcr.io (deprecated)/charts" "${ROOT_DIR}/dex/cpar.dev/charts" \
-          "$CHART_VERSION"
+          "$CHART_VERSION" "$cpar_chart_repo"
         ;;
     esac
     ;;
