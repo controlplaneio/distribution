@@ -1,4 +1,4 @@
 images:
   - name: ghcr.io/controlplaneio/ubi/openbao
     newTag: v2.7.2
-    digest: sha256:52187a40b192e820b804627ffd31f7d349f3ddcedf985d9810dc07e7b8e0b9f5
+    digest: sha256:782d7bfc04690fe602bbc8b4ef925e63b924651d16a6b9a331fd15b2c2b189b8
