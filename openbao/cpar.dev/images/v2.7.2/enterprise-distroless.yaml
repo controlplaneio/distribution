@@ -1,4 +1,4 @@
 images:
   - name: cpar.dev/openbao/distroless/openbao
     newTag: v2.7.2
-    digest: sha256:07d4a3ad955c4b2965ff33c30831e5e43545fb4fbfd29879024eb8424f2e195a
+    digest: sha256:a300f29863343c7d28964d2418ab0f3b0f2ffd4331854c984db6137bd78a8712
