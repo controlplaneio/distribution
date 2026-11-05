@@ -20,12 +20,8 @@ cryptography and Helm charts published to the ControlPlane Artifact Registry
 
 ## Version tracking
 
-The independently versioned components are tracked in:
-
-- `controller-manager-version`
-- `spiffe-version`
-- `spire-chart-version`
-- `spire-crds-chart-version`
+The component and chart versions for each release are documented in the
+[release notes](releases/).
 
 ## Supply chain security
 

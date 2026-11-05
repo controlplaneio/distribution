@@ -15,11 +15,23 @@ on:
           - spire
           - flux-mcp-enterprise
       version:
-        description: 'Image version (empty = VERSION file / latest pin, all = every pinned version)'
+        description: 'Image version (empty = latest pinned version, all = every pinned version)'
         required: false
         type: string
       chart_version:
         description: 'Chart version (empty = latest / matching, all = every pinned chart, skip = images only)'
+        required: false
+        type: string
+      spire_controller_manager_version:
+        description: 'SPIRE controller manager image version (required for spire)'
+        required: false
+        type: string
+      spiffe_csi_driver_version:
+        description: 'SPIFFE CSI driver image version (required for spire)'
+        required: false
+        type: string
+      spire_crds_chart_version:
+        description: 'SPIRE CRDs chart version (empty = latest)'
         required: false
         type: string
 
@@ -58,11 +70,8 @@ jobs:
             versions="$(find "$images_dir" -mindepth 1 -maxdepth 1 \
               -type d -name 'v*' -printf '%f\n' | sort -V)"
           elif [ -z "$VERSION" ]; then
-            if [ -f "${images_dir}/VERSION" ]; then
-              versions="$(cat "${images_dir}/VERSION")"
-            else
-              versions="$(ls "$images_dir" | grep -E '^v[0-9]' | sort -V | tail -n1)"
-            fi
+            versions="$(find "$images_dir" -mindepth 1 -maxdepth 1 \
+              -type d -name 'v*' -printf '%f\n' | sort -V | tail -n1)"
           else
             versions="$VERSION"
           fi
@@ -147,6 +156,9 @@ jobs:
           TARGET: ${{ inputs.target }}
           VERSION: ${{ matrix.entry.version }}
           CHART_VERSION: ${{ matrix.entry.chart_version }}
+          SPIRE_CONTROLLER_MANAGER_VERSION: ${{ inputs.spire_controller_manager_version }}
+          SPIFFE_CSI_DRIVER_VERSION: ${{ inputs.spiffe_csi_driver_version }}
+          SPIRE_CRDS_CHART_VERSION: ${{ inputs.spire_crds_chart_version }}
         run: .github/workflows/update-pins.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1

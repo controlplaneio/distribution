@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: spire/cpar.dev/images/%VERSION%/enterprise-distroless-fips.yaml
-      version-file: spire/cpar.dev/images/VERSION
+      version-dir: spire/cpar.dev/images
       minor-count: '1'
       ignore-prefix: spire
       alert: SPIRE Enterprise Distroless FIPS

@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: fluxcd/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
-      version-file: fluxcd/ghcr.io (deprecated)/images/VERSION
+      version-dir: fluxcd/ghcr.io (deprecated)/images
       minor-count: '1'
       ignore-prefix: fluxcd
       alert: Flux Enterprise Distroless
