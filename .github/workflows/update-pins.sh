@@ -315,7 +315,7 @@ EOF
     if [ "$CHART_VERSION" != "skip" ]; then
       write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" flux-mcp-enterprise \
         "${GHCR_ADDON_DIR}/charts" "${CPAR_ADDON_DIR}/charts" \
-        "$CHART_VERSION"
+        "$CHART_VERSION" "$cpar_chart_repo"
     fi
     ;;
 
