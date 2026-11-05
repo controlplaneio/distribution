@@ -197,5 +197,5 @@ jobs:
           organization-url: ${{ secrets.ZULIP_ORGANIZATION_URL }}
           type: stream
           to: Distribution
-          topic: cve-alerts
+          topic: license-alerts
           content: ${{ steps.message.outputs.content }}
