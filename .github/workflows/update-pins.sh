@@ -97,10 +97,17 @@ EOF
 }
 
 write_cpar_chart_pin() {
-  local cpar_repo="$1" chart_name="$2" cpar_dir="$3" version="$4"
-  local cpar_digest
+  local cpar_repo="$1" chart_name="$2" cpar_dir="$3" version="${4:-}"
+  local tmp pulled cpar_digest
 
-  [ -n "$version" ] || { echo "chart version is required for ${cpar_repo}" >&2; exit 1; }
+  if [ -z "$version" ]; then
+    tmp="$(mktemp -d)"
+    pulled="$(helm pull "oci://${cpar_repo}" --destination "$tmp" 2>&1)"
+    echo "$pulled"
+    version="$(echo "$pulled" | awk -F: '/^Pulled:/ {print $NF}')"
+    rm -rf "$tmp"
+  fi
+  [ -n "$version" ] || { echo "could not resolve chart version for ${cpar_repo}" >&2; exit 1; }
 
   cpar_digest="$(resolve_digest "${cpar_repo}:${version}")"
   mkdir -p "${cpar_dir}/${version}"
@@ -209,19 +216,16 @@ case "$TARGET" in
     done
     advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
 
-    ghcr_chart_repo="ghcr.io/controlplaneio/openbao/charts/openbao"
     cpar_chart_repo="cpar.dev/openbao/charts/openbao"
     case "$CHART_VERSION" in
       skip) ;;
       ''|all)
-        write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" openbao \
-          "${ROOT_DIR}/openbao/ghcr.io (deprecated)/charts" \
-          "${ROOT_DIR}/openbao/cpar.dev/charts" "" "$cpar_chart_repo"
+        write_cpar_chart_pin "$cpar_chart_repo" openbao \
+          "${ROOT_DIR}/openbao/cpar.dev/charts" ""
         ;;
       *)
-        write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" openbao \
-          "${ROOT_DIR}/openbao/ghcr.io (deprecated)/charts" \
-          "${ROOT_DIR}/openbao/cpar.dev/charts" "$CHART_VERSION" "$cpar_chart_repo"
+        write_cpar_chart_pin "$cpar_chart_repo" openbao \
+          "${ROOT_DIR}/openbao/cpar.dev/charts" "$CHART_VERSION"
         ;;
     esac
     ;;
