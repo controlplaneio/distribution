@@ -1,0 +1,12 @@
+**/*.yml linguist-detectable=true
+**/*.yml linguist-language=YAML
+**/*.yaml linguist-detectable=true
+**/*.yaml linguist-language=YAML
+**/*.md linguist-detectable=true
+**/*.md linguist-language=Markdown
+**/*.json linguist-detectable=true
+**/*.json linguist-language=JSON
+**/*.sh linguist-detectable=true
+**/*.sh linguist-language=Shell
+**/*.cue linguist-detectable=true
+**/*.cue linguist-language=CUE
