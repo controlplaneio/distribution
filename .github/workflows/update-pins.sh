@@ -10,6 +10,9 @@
 #   CHART_VERSION - chart version to update. "skip" updates images only.
 #                   Empty resolves the latest chart. "all" updates every chart
 #                   version already pinned (dex only).
+#   SPIRE_CONTROLLER_MANAGER_VERSION - spire-controller-manager image tag.
+#   SPIFFE_CSI_DRIVER_VERSION - spiffe-csi-driver image tag.
+#   SPIRE_CRDS_CHART_VERSION - spire-crds chart version.
 #
 # The workflow matrix handles multi-version backfills, so this script always
 # operates on exactly one image version.
@@ -19,6 +22,9 @@ set -euo pipefail
 TARGET="${TARGET:?TARGET is required}"
 VERSION="${VERSION:?VERSION is required}"
 CHART_VERSION="${CHART_VERSION:-}"
+SPIRE_CONTROLLER_MANAGER_VERSION="${SPIRE_CONTROLLER_MANAGER_VERSION:-}"
+SPIFFE_CSI_DRIVER_VERSION="${SPIFFE_CSI_DRIVER_VERSION:-}"
+SPIRE_CRDS_CHART_VERSION="${SPIRE_CRDS_CHART_VERSION:-}"
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
@@ -125,17 +131,6 @@ EOF
   echo "wrote chart ${version} for ${cpar_repo}"
 }
 
-advance_version() {
-  local ghcr_dir="$1" cpar_dir="$2" current newest
-  current="$(cat "${ghcr_dir}/VERSION" 2>/dev/null || true)"
-  newest="$(printf '%s\n%s\n' "$current" "$VERSION" | sort -V | tail -n1)"
-  if [ -z "$current" ] || [ "$newest" = "$VERSION" ]; then
-    printf '%s\n' "$VERSION" >"${ghcr_dir}/VERSION"
-  fi
-  mkdir -p "$cpar_dir"
-  cp "${ghcr_dir}/VERSION" "${cpar_dir}/VERSION"
-}
-
 flux_refs() {
   local registry="$1" components minor
   components="image-reflector-controller,image-automation-controller"
@@ -185,7 +180,6 @@ case "$TARGET" in
 
     refs="$(flux_refs "ghcr.io/fluxcd")"
     write_pin_file "${GHCR_IMAGES_DIR}/${VERSION}/upstream-alpine.yaml" <<<"$refs"
-    advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
     ;;
 
   openbao)
@@ -214,7 +208,6 @@ case "$TARGET" in
       write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" \
         <<<"${CPAR_BASE}/${variant}/openbao:${VERSION}"
     done
-    advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
 
     cpar_chart_repo="cpar.dev/openbao/charts/openbao"
     case "$CHART_VERSION" in
@@ -239,7 +232,6 @@ case "$TARGET" in
       <<<"${ghcr_image_repo}:${VERSION}"
     write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" \
       <<<"${cpar_image_repo}:${VERSION}"
-    advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
 
     ghcr_chart_repo="ghcr.io/controlplaneio-fluxcd/charts/dex"
     cpar_chart_repo="cpar.dev/dex/charts/dex"
@@ -264,10 +256,10 @@ case "$TARGET" in
   spire)
     CPAR_IMAGES_DIR="${ROOT_DIR}/spire/cpar.dev/images"
     spire_tag="${VERSION#v}"
-    cm_tag="$(cat "${ROOT_DIR}/spire/controller-manager-version")"
-    cm_tag="${cm_tag#v}"
-    csi_tag="$(cat "${ROOT_DIR}/spire/spiffe-version")"
-    csi_tag="${csi_tag#v}"
+    cm_tag="${SPIRE_CONTROLLER_MANAGER_VERSION#v}"
+    csi_tag="${SPIFFE_CSI_DRIVER_VERSION#v}"
+    [ -n "$cm_tag" ] || { echo "SPIRE_CONTROLLER_MANAGER_VERSION is required for spire" >&2; exit 1; }
+    [ -n "$csi_tag" ] || { echo "SPIFFE_CSI_DRIVER_VERSION is required for spire" >&2; exit 1; }
 
     refs="$(cat <<EOF
 cpar.dev/spire/distroless-fips/spire-server:${spire_tag}
@@ -278,14 +270,12 @@ cpar.dev/spiffe/distroless-fips/spiffe-csi-driver:${csi_tag}
 EOF
 )"
     write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-distroless-fips.yaml" <<<"$refs"
-    printf '%s\n' "$VERSION" >"${CPAR_IMAGES_DIR}/VERSION"
 
     if [ "$CHART_VERSION" != "skip" ]; then
-      spire_chart_version="$(cat "${ROOT_DIR}/spire/spire-chart-version")"
-      crds_chart_version="$(cat "${ROOT_DIR}/spire/spire-crds-chart-version")"
-      if [ -n "$CHART_VERSION" ] && [ "$CHART_VERSION" != "all" ]; then
-        spire_chart_version="$CHART_VERSION"
-      fi
+      spire_chart_version="$CHART_VERSION"
+      [ "$spire_chart_version" = "all" ] && spire_chart_version=""
+      crds_chart_version="$SPIRE_CRDS_CHART_VERSION"
+      [ "$crds_chart_version" = "all" ] && crds_chart_version=""
       write_cpar_chart_pin \
         "cpar.dev/spire/charts/spire" \
         spire \

@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: dex/cpar.dev/images/%VERSION%/enterprise-distroless-fips.yaml
-      version-file: dex/ghcr.io (deprecated)/images/VERSION
+      version-dir: dex/ghcr.io (deprecated)/images
       minor-count: '1'
       ignore-prefix: dex
       alert: Dex Enterprise Distroless

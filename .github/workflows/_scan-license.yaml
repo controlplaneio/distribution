@@ -10,16 +10,10 @@ on:
         description: 'upstream repository, e.g. openbao/openbao'
         required: true
         type: string
-      version-file:
-        description: 'file containing the product version (e.g. fluxcd/ghcr.io (deprecated)/images/VERSION)'
-        required: false
-        type: string
-        default: ''
       version-dir:
-        description: 'directory containing version dirs; used when version-file is absent'
-        required: false
+        description: 'directory containing version directories'
+        required: true
         type: string
-        default: ''
       version:
         description: 'scan only this exact version (empty = use minor-count selection)'
         required: false
@@ -62,20 +56,13 @@ jobs:
         id: find
         shell: bash
         env:
-          VERSION_FILE: ${{ inputs.version-file }}
           VERSION_DIR: ${{ inputs.version-dir }}
           ONLY_VERSION: ${{ inputs.version }}
           MINOR_COUNT: ${{ inputs.minor-count }}
         run: |
           set -euo pipefail
-          if [ -n "$VERSION_DIR" ]; then
-            dir="$VERSION_DIR"
-          elif [ -n "$VERSION_FILE" ]; then
-            dir="$(dirname "$VERSION_FILE")"
-          else
-            echo "one of version-file or version-dir is required" >&2
-            exit 1
-          fi
+          [ -n "$VERSION_DIR" ] || { echo "version-dir is required" >&2; exit 1; }
+          dir="$VERSION_DIR"
 
           all_versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
             | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
@@ -85,11 +72,7 @@ jobs:
           if [ -n "$ONLY_VERSION" ]; then
             selected="$ONLY_VERSION"
           elif [ "$count" -le 0 ]; then
-            if [ -n "$VERSION_FILE" ]; then
-              selected="$(cat "$VERSION_FILE")"
-            else
-              selected="$(printf '%s\n' "$all_versions" | tail -n1)"
-            fi
+            selected="$(printf '%s\n' "$all_versions" | tail -n1)"
           else
             minors="$(printf '%s\n' "$all_versions" | sed 's/^v//' \
               | cut -d. -f1,2 | sort -Vu | tail -n "$count")"

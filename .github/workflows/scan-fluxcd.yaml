@@ -35,7 +35,7 @@ jobs:
     with:
       pins: >-
         fluxcd/cpar.dev/images/%VERSION%/enterprise-alpine.yaml
-      version-file: fluxcd/ghcr.io (deprecated)/images/VERSION
+      version-dir: fluxcd/ghcr.io (deprecated)/images
       version: ${{ inputs.version }}
       minor-count: '3'
       ignore-prefix: fluxcd
@@ -75,7 +75,7 @@ jobs:
     uses: ./.github/workflows/_scan-pins.yaml
     with:
       pins: fluxcd/ghcr.io (deprecated)/images/%VERSION%/upstream-alpine.yaml
-      version-file: fluxcd/ghcr.io (deprecated)/images/VERSION
+      version-dir: fluxcd/ghcr.io (deprecated)/images
       version: ${{ inputs.version }}
       minor-count: '1'
       ignore-prefix: fluxcd
