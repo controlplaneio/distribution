@@ -208,6 +208,22 @@ case "$TARGET" in
         <<<"${CPAR_BASE}/${variant}/openbao:${VERSION}"
     done
     advance_version "$GHCR_IMAGES_DIR" "$CPAR_IMAGES_DIR"
+
+    ghcr_chart_repo="ghcr.io/controlplaneio/openbao/charts/openbao"
+    cpar_chart_repo="cpar.dev/openbao/charts/openbao"
+    case "$CHART_VERSION" in
+      skip) ;;
+      ''|all)
+        write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" openbao \
+          "${ROOT_DIR}/openbao/ghcr.io (deprecated)/charts" \
+          "${ROOT_DIR}/openbao/cpar.dev/charts" ""
+        ;;
+      *)
+        write_chart_pin "$ghcr_chart_repo" "$cpar_chart_repo" openbao \
+          "${ROOT_DIR}/openbao/ghcr.io (deprecated)/charts" \
+          "${ROOT_DIR}/openbao/cpar.dev/charts" "$CHART_VERSION"
+        ;;
+    esac
     ;;
 
   dex)

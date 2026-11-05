@@ -88,6 +88,11 @@ jobs:
                   chart="$CHART_VERSION"
                 fi
                 ;;
+              openbao)
+                if [ "$v" = "$latest" ]; then
+                  chart="$CHART_VERSION"
+                fi
+                ;;
               spire)
                 if [ "$v" = "$latest" ]; then
                   case "$CHART_VERSION" in
