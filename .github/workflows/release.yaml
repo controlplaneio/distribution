@@ -29,18 +29,9 @@ jobs:
           fi
 
           case "$product" in
-            fluxcd)
+            fluxcd|dex|openbao|spire)
               minor="${version%.*}"
-              notes="See the [distribution release notes](https://github.com/${GITHUB_REPOSITORY}/blob/main/fluxcd/releases/release-${minor}.md) for more details."
-              ;;
-            openbao)
-              notes="See the [OpenBao release notes](https://github.com/openbao/openbao/releases/tag/${version}) for more details."
-              ;;
-            dex)
-              notes="See the [Dex release notes](https://github.com/dexidp/dex/releases/tag/${version}) for more details."
-              ;;
-            spire)
-              notes="See the [SPIRE release notes](https://github.com/spiffe/spire/releases/tag/${version}) for more details."
+              notes="See the [distribution release notes](https://github.com/${GITHUB_REPOSITORY}/blob/main/${product}/releases/release-${minor}.md) for more details."
               ;;
             *)
               echo "unknown release product '$product'" >&2
