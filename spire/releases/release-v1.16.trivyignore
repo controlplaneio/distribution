@@ -1,0 +1,5 @@
+# Suppressions scoped to the SPIRE v1.16 release. The stock
+# spire/.trivyignore applies to all minors; entries here are for findings
+# specific to this minor.
+#
+# status: fixed (backported via patch)
