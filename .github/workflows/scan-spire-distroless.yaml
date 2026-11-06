@@ -1,4 +1,4 @@
-name: Distroless FIPS scan - SPIRE
+name: Distroless scan - SPIRE
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ jobs:
       version-dir: spire/cpar.dev/images
       minor-count: '1'
       ignore-prefix: spire
-      alert: SPIRE Enterprise Distroless FIPS
+      alert: SPIRE Enterprise Distroless
     secrets:
       ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
       ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
