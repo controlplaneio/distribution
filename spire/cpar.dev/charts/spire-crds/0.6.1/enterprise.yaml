@@ -6,4 +6,4 @@ spec:
   url: oci://cpar.dev/spire/charts/spire-crds
   ref:
     tag: 0.6.1
-    digest: sha256:62b459f6eb27269f0199683fb13d967861cff7cd0b334f8cf92b383a7c56616c
+    digest: sha256:d8ddf23bc414c5f0c7647433c3a8d6e7c9e03d40c87ad8c2a9083ad8cdb34b07

@@ -6,4 +6,4 @@ spec:
   url: oci://cpar.dev/spire/charts/spire
   ref:
     tag: 0.30.4
-    digest: sha256:da41abc47ff837a4768734073f686c2869ac96b9afa0e6966c76bc68fc8d2f76
+    digest: sha256:eb97772462158d42f57ed1dec2e7911957fd817444efd58abf10d4d2897449dd
