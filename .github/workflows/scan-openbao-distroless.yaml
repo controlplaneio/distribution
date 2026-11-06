@@ -18,7 +18,7 @@ jobs:
     with:
       pins: openbao/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
       version-dir: openbao/ghcr.io (deprecated)/images
-      minor-count: '3'
+      minor-count: '1'
       ignore-prefix: openbao
       alert: OpenBao Enterprise Distroless
     secrets:

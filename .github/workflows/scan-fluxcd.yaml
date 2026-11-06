@@ -45,6 +45,27 @@ jobs:
       ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
       ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}
 
+  distroless:
+    if: github.event_name != 'push' && (inputs.scan == '' || inputs.scan == 'all' || inputs.scan == 'product')
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    uses: ./.github/workflows/_scan-pins.yaml
+    with:
+      pins: >-
+        fluxcd/cpar.dev/images/%VERSION%/enterprise-distroless.yaml
+      version-dir: fluxcd/ghcr.io (deprecated)/images
+      version: ${{ inputs.version }}
+      minor-count: '3'
+      exclude-latest: true
+      ignore-prefix: fluxcd
+      alert: Flux Enterprise Distroless (previous)
+    secrets:
+      ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
+      ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+      ZULIP_ORGANIZATION_URL: ${{ secrets.ZULIP_ORGANIZATION_URL }}
+
   addons:
     if: github.event_name != 'push' && (inputs.scan == '' || inputs.scan == 'all' || inputs.scan == 'addons')
     permissions:

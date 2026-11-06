@@ -1,9 +1,10 @@
 # Reusable vulnerability scan for image pin files.
 #
 # Expands the given pin globs for the latest patch release of each of the
-# last N minor versions, then scans every image referenced by the resulting
-# manifests. Missing pin files are ignored so a scan can cover both
-# registries once cpar.dev pins have been backfilled.
+# last N minor versions (optionally excluding the latest minor), then scans
+# every image referenced by the resulting manifests. Missing pin files are
+# ignored so a scan can cover both registries once cpar.dev pins have been
+# backfilled.
 on:
   workflow_call:
     inputs:
@@ -25,6 +26,11 @@ on:
         required: false
         type: string
         default: '3'
+      exclude-latest:
+        description: 'exclude the latest minor version from the selection'
+        required: false
+        type: boolean
+        default: false
       severity:
         description: 'vulnerability severity'
         required: false
@@ -79,6 +85,7 @@ jobs:
           VERSION_DIR: ${{ inputs.version-dir }}
           ONLY_VERSION: ${{ inputs.version }}
           MINOR_COUNT: ${{ inputs.minor-count }}
+          EXCLUDE_LATEST: ${{ inputs.exclude-latest }}
         run: |
           set -euo pipefail
           [ -n "$VERSION_DIR" ] || { echo "version-dir is required" >&2; exit 1; }
@@ -96,6 +103,9 @@ jobs:
           else
             minors="$(printf '%s\n' "$all_versions" | sed 's/^v//' \
               | cut -d. -f1,2 | sort -Vu | tail -n "$count")"
+            if [ "$EXCLUDE_LATEST" = "true" ]; then
+              minors="$(printf '%s\n' "$minors" | sed '$d')"
+            fi
             selected=""
             for minor in $minors; do
               version="$(printf '%s\n' "$all_versions" \
@@ -103,13 +113,26 @@ jobs:
               [ -n "$version" ] && selected="${selected}${version}"$'\n'
             done
           fi
-          [ -n "$selected" ] || { echo "no matching versions under $dir" >&2; exit 1; }
+          if [ -z "$selected" ]; then
+            if [ "$EXCLUDE_LATEST" = "true" ]; then
+              echo "no previous versions under $dir" >&2
+            else
+              echo "no matching versions under $dir" >&2
+              exit 1
+            fi
+          fi
           echo "selected versions:" >&2
           printf '%s\n' "$selected" >&2
 
           selected_versions="$(printf '%s\n' "$selected" | sed '/^$/d' | sort -Vr)"
           selected_minors="$(printf '%s\n' "$selected_versions" | sed 's/^v//' \
             | cut -d. -f1,2 | sort -Vr)"
+          if [ "$EXCLUDE_LATEST" = "true" ]; then
+            latest_minor="$(printf '%s\n' "$all_versions" | sed 's/^v//' \
+              | cut -d. -f1,2 | sort -Vu | tail -n1)"
+            selected_minors="$(printf '%s\n%s\n' "$latest_minor" "$selected_minors" \
+              | sed '/^$/d' | sort -Vr)"
+          fi
 
           targets=""
           for version in $selected_versions; do
