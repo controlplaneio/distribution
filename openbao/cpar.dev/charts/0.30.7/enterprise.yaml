@@ -6,4 +6,4 @@ spec:
   url: oci://cpar.dev/openbao/charts/openbao
   ref:
     tag: 0.30.7
-    digest: sha256:5198e179e51d1f1e09649ceba88be152cffea43f94725e6c135139370a028321
+    digest: sha256:dd865c07c1710fe3eb8fa3f6e2d391f904941a942fe982a77db86b25a01fc380
