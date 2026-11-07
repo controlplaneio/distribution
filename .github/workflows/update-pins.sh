@@ -13,6 +13,11 @@
 #   SPIRE_CONTROLLER_MANAGER_VERSION - spire-controller-manager image tag.
 #   SPIFFE_CSI_DRIVER_VERSION - spiffe-csi-driver image tag.
 #   SPIRE_CRDS_CHART_VERSION - spire-crds chart version.
+#   OPENBAO_K8S_VERSION - OpenBao injector image tag.
+#   OPENBAO_CSI_PROVIDER_VERSION - OpenBao CSI provider image tag.
+#   OPENBAO_SNAPSHOT_AGENT_VERSION - OpenBao snapshot agent image tag.
+#   INCLUDE_OPENBAO_COMPONENTS - add auxiliary OpenBao images to the latest
+#                                pinned OpenBao version only.
 #
 # The workflow matrix handles multi-version backfills, so this script always
 # operates on exactly one image version.
@@ -25,6 +30,10 @@ CHART_VERSION="${CHART_VERSION:-}"
 SPIRE_CONTROLLER_MANAGER_VERSION="${SPIRE_CONTROLLER_MANAGER_VERSION:-}"
 SPIFFE_CSI_DRIVER_VERSION="${SPIFFE_CSI_DRIVER_VERSION:-}"
 SPIRE_CRDS_CHART_VERSION="${SPIRE_CRDS_CHART_VERSION:-}"
+OPENBAO_K8S_VERSION="${OPENBAO_K8S_VERSION:-}"
+OPENBAO_CSI_PROVIDER_VERSION="${OPENBAO_CSI_PROVIDER_VERSION:-}"
+OPENBAO_SNAPSHOT_AGENT_VERSION="${OPENBAO_SNAPSHOT_AGENT_VERSION:-}"
+INCLUDE_OPENBAO_COMPONENTS="${INCLUDE_OPENBAO_COMPONENTS:-false}"
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
@@ -202,11 +211,34 @@ case "$TARGET" in
       [ "${#existing[@]}" -gt 0 ] && variants_to_update=("${existing[@]}")
     fi
 
+    if [ "$INCLUDE_OPENBAO_COMPONENTS" = "true" ]; then
+      [ -n "$OPENBAO_K8S_VERSION" ] || { echo "OPENBAO_K8S_VERSION is required when pinning OpenBao components" >&2; exit 1; }
+      [ -n "$OPENBAO_CSI_PROVIDER_VERSION" ] || { echo "OPENBAO_CSI_PROVIDER_VERSION is required when pinning OpenBao components" >&2; exit 1; }
+      [ -n "$OPENBAO_SNAPSHOT_AGENT_VERSION" ] || { echo "OPENBAO_SNAPSHOT_AGENT_VERSION is required when pinning OpenBao components" >&2; exit 1; }
+    fi
+
     for variant in "${variants_to_update[@]}"; do
+      ghcr_refs=("${GHCR_BASE}/${variant}/openbao:${VERSION}")
+      cpar_refs=("${CPAR_BASE}/${variant}/openbao:${VERSION}")
+      if [ "$INCLUDE_OPENBAO_COMPONENTS" = "true" ]; then
+        # The chart consumes these images alongside the server image. Keep
+        # them in the latest release pin set; older server releases predate
+        # the additional distribution components.
+        ghcr_refs+=(
+          "${GHCR_BASE}/${variant}/openbao-k8s:${OPENBAO_K8S_VERSION}"
+          "${GHCR_BASE}/${variant}/openbao-csi-provider:${OPENBAO_CSI_PROVIDER_VERSION}"
+          "${GHCR_BASE}/${variant}/openbao-snapshot-agent:${OPENBAO_SNAPSHOT_AGENT_VERSION}"
+        )
+        cpar_refs+=(
+          "${CPAR_BASE}/${variant}/openbao-k8s:${OPENBAO_K8S_VERSION}"
+          "${CPAR_BASE}/${variant}/openbao-csi-provider:${OPENBAO_CSI_PROVIDER_VERSION}"
+          "${CPAR_BASE}/${variant}/openbao-snapshot-agent:${OPENBAO_SNAPSHOT_AGENT_VERSION}"
+        )
+      fi
       write_pin_file "${GHCR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" \
-        <<<"${GHCR_BASE}/${variant}/openbao:${VERSION}"
+        < <(printf '%s\n' "${ghcr_refs[@]}")
       write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" \
-        <<<"${CPAR_BASE}/${variant}/openbao:${VERSION}"
+        < <(printf '%s\n' "${cpar_refs[@]}")
     done
 
     cpar_chart_repo="cpar.dev/openbao/charts/openbao"
