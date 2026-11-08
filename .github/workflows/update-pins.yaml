@@ -22,6 +22,21 @@ on:
         description: 'Chart version (empty = latest / matching, all = every pinned chart, skip = images only)'
         required: false
         type: string
+      openbao_k8s_version:
+        description: 'OpenBao injector image version'
+        required: false
+        type: string
+        default: v1.4.0
+      openbao_csi_provider_version:
+        description: 'OpenBao CSI provider image version'
+        required: false
+        type: string
+        default: v2.0.3
+      openbao_snapshot_agent_version:
+        description: 'OpenBao snapshot agent image version'
+        required: false
+        type: string
+        default: v0.4.5
       spire_controller_manager_version:
         description: 'SPIRE controller manager image version (required for spire)'
         required: false
@@ -66,9 +81,10 @@ jobs:
             *) echo "unknown target: $TARGET" >&2; exit 1 ;;
           esac
 
+          all_versions="$(find "$images_dir" -mindepth 1 -maxdepth 1 \
+            -type d -name 'v*' -printf '%f\n' | sort -V)"
           if [ "$VERSION" = "all" ]; then
-            versions="$(find "$images_dir" -mindepth 1 -maxdepth 1 \
-              -type d -name 'v*' -printf '%f\n' | sort -V)"
+            versions="$all_versions"
           elif [ -z "$VERSION" ]; then
             versions="$(find "$images_dir" -mindepth 1 -maxdepth 1 \
               -type d -name 'v*' -printf '%f\n' | sort -V | tail -n1)"
@@ -78,6 +94,7 @@ jobs:
           [ -n "$versions" ] || { echo "no versions found under $images_dir" >&2; exit 1; }
 
           latest="$(printf '%s\n' "$versions" | sort -V | tail -n1)"
+          latest_pinned="$(printf '%s\n' "$all_versions" | sort -V | tail -n1)"
           entries="[]"
           for v in $versions; do
             chart="skip"
@@ -112,8 +129,12 @@ jobs:
                 fi
                 ;;
             esac
-            entries="$(jq -c --arg v "$v" --arg c "$chart" \
-              '. + [{version: $v, chart_version: $c}]' <<<"$entries")"
+            include_components=false
+            if [ "$TARGET" = "openbao" ] && [ "$v" = "$latest_pinned" ]; then
+              include_components=true
+            fi
+            entries="$(jq -c --arg v "$v" --arg c "$chart" --argjson components "$include_components" \
+              '. + [{version: $v, chart_version: $c, include_components: $components}]' <<<"$entries")"
           done
           echo "entries=${entries}" >> "$GITHUB_OUTPUT"
           echo "$entries" | jq .
@@ -159,6 +180,10 @@ jobs:
           SPIRE_CONTROLLER_MANAGER_VERSION: ${{ inputs.spire_controller_manager_version }}
           SPIFFE_CSI_DRIVER_VERSION: ${{ inputs.spiffe_csi_driver_version }}
           SPIRE_CRDS_CHART_VERSION: ${{ inputs.spire_crds_chart_version }}
+          OPENBAO_K8S_VERSION: ${{ inputs.openbao_k8s_version }}
+          OPENBAO_CSI_PROVIDER_VERSION: ${{ inputs.openbao_csi_provider_version }}
+          OPENBAO_SNAPSHOT_AGENT_VERSION: ${{ inputs.openbao_snapshot_agent_version }}
+          INCLUDE_OPENBAO_COMPONENTS: ${{ matrix.entry.include_components }}
         run: .github/workflows/update-pins.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
