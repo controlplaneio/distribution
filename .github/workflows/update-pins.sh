@@ -221,14 +221,8 @@ case "$TARGET" in
       ghcr_refs=("${GHCR_BASE}/${variant}/openbao:${VERSION}")
       cpar_refs=("${CPAR_BASE}/${variant}/openbao:${VERSION}")
       if [ "$INCLUDE_OPENBAO_COMPONENTS" = "true" ]; then
-        # The chart consumes these images alongside the server image. Keep
-        # them in the latest release pin set; older server releases predate
-        # the additional distribution components.
-        ghcr_refs+=(
-          "${GHCR_BASE}/${variant}/openbao-k8s:${OPENBAO_K8S_VERSION}"
-          "${GHCR_BASE}/${variant}/openbao-csi-provider:${OPENBAO_CSI_PROVIDER_VERSION}"
-          "${GHCR_BASE}/${variant}/openbao-snapshot-agent:${OPENBAO_SNAPSHOT_AGENT_VERSION}"
-        )
+        # These component images are published to CPAR; the deprecated GHCR
+        # pin namespace only contains the main OpenBao image.
         cpar_refs+=(
           "${CPAR_BASE}/${variant}/openbao-k8s:${OPENBAO_K8S_VERSION}"
           "${CPAR_BASE}/${variant}/openbao-csi-provider:${OPENBAO_CSI_PROVIDER_VERSION}"
