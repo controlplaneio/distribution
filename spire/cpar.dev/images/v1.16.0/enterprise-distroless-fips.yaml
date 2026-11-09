@@ -13,4 +13,4 @@ images:
     digest: sha256:5492943d553321bdcb41aef95e5a8000b66b6f5755cab974e2fd182282c89536
   - name: cpar.dev/spiffe/distroless-fips/spiffe-csi-driver
     newTag: 0.3.0
-    digest: sha256:c2b9ac803aadb676ff5bc92fe3b472ea7b710492036da291c600e121900e7f5f
+    digest: sha256:098044642d4a77781c4837861959883939accf712d0c67d6a7eb69cfa6a62dec
