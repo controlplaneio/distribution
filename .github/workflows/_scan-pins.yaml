@@ -56,6 +56,11 @@ on:
         required: false
         type: string
         default: 'Distribution'
+      notify:
+        description: 'send a Zulip alert on scan failure'
+        required: false
+        type: boolean
+        default: true
     secrets:
       pull-token:
         description: 'registry read token for GHCR images'
@@ -248,7 +253,7 @@ jobs:
 
   notify-zulip:
     needs: scan
-    if: failure()
+    if: inputs.notify && failure()
     runs-on: ubuntu-latest
     permissions:
       contents: read
