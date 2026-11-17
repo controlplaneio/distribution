@@ -1,4 +1,4 @@
 images:
   - name: cpar.dev/dex/distroless-fips/dex
     newTag: v2.45.1
-    digest: sha256:85729af24fc4245db36d3e87d71e6b77689b94c58fd5cc79bbf3e5e8334e05e3
+    digest: sha256:6c36095d18453195f973767ddb80d49ab7928b5a29393c26429b0077bafc949e
