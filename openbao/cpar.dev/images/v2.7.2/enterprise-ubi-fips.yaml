@@ -1,13 +1,13 @@
 images:
   - name: cpar.dev/openbao/ubi-fips/openbao
     newTag: v2.7.2
-    digest: sha256:32c154f7acae08db35ffc34d197888eea6f70e21492eb8ed08b3bb853f4d454b
+    digest: sha256:a282b5e4cf9f52fe2640476cf7aaac9983ae709406bd4e4bed559945044dc391
   - name: cpar.dev/openbao/ubi-fips/openbao-k8s
     newTag: v1.4.0
-    digest: sha256:1417729a1719d8d3c85376ac2f1c79fe2f4ca29828eb8e0addd59e1df29ac024
+    digest: sha256:3653d640adc3470b900163b0e60ca1cd8328c9219775a946cd1be428da8f4722
   - name: cpar.dev/openbao/ubi-fips/openbao-csi-provider
     newTag: v2.0.3
-    digest: sha256:8c78657f21f26812f4bc211461a5586478579bc5345a8ef3e3765352f99aa55d
+    digest: sha256:5229c493f1b1d81b615ecc504942c0c34c4b0e3926f45bfd4e79d400c462b7bf
   - name: cpar.dev/openbao/ubi-fips/openbao-snapshot-agent
     newTag: v0.4.5
-    digest: sha256:6361e492921532232e7469169837f3e7a0fa9e29f49669158f8cde4890007015
+    digest: sha256:c3c5689409520c75e1b48af585f1cf9a1fc01901b74ad5de13527891d39dc2d9
