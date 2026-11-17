@@ -1,16 +1,16 @@
 images:
   - name: cpar.dev/spire/distroless-fips/spire-server
     newTag: 1.16.0
-    digest: sha256:a321eff3acbeb9afa1239b4b51abd3de08eac009e7a062b52e32682cb77fa46e
+    digest: sha256:6fc8944f290efbc8e12c2b99a0a57d010105c0c5df406f7b4bc880c0b176bea8
   - name: cpar.dev/spire/distroless-fips/spire-agent
     newTag: 1.16.0
-    digest: sha256:b1d787c7baaff5755e543ed997fb246c093c6f21873fa59789ed4d161ad2b4aa
+    digest: sha256:343df82e4e77993353dd9fcdda5d4729347751f1b215f61baf19bf796d0b96e2
   - name: cpar.dev/spire/distroless-fips/oidc-discovery-provider
     newTag: 1.16.0
-    digest: sha256:6be27d6508688fdb9fb09c627e639c8d98c3079d10307009ddda55515d661326
+    digest: sha256:3116f095d59de753d88605c62c5042636dee72cf8193e41b069e6beda516fc9b
   - name: cpar.dev/spire/distroless-fips/spire-controller-manager
     newTag: 0.8.1
-    digest: sha256:5492943d553321bdcb41aef95e5a8000b66b6f5755cab974e2fd182282c89536
+    digest: sha256:0dee06a0fe0efb3944039418554cd668fca0236802204f36dd38d90b97d41626
   - name: cpar.dev/spiffe/distroless-fips/spiffe-csi-driver
     newTag: 0.3.0
-    digest: sha256:098044642d4a77781c4837861959883939accf712d0c67d6a7eb69cfa6a62dec
+    digest: sha256:cd6d5233d297628cdf3a94409ab2cfa6bf034c1d3566e26ac1a69033a706be60

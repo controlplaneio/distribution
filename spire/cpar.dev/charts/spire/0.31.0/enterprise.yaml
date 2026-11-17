@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: spire
+spec:
+  url: oci://cpar.dev/spire/charts/spire
+  ref:
+    tag: 0.31.0
+    digest: sha256:b1651f6150162c4b496ee5be7a7dd27f1b7de0accffb47227371fcb0b568dc8f
