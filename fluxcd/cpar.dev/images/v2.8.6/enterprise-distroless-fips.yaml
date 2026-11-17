@@ -10,7 +10,7 @@ images:
     digest: sha256:3e570e59a2b0c7c59e1033c00d2157f5c20e529a621a7a2db3d0db0155fb7502
   - name: cpar.dev/fluxcd/distroless-fips/notification-controller
     newTag: v1.8.4
-    digest: sha256:659737317a1309bd6817e7ab253e3609e10d218b72aa901e00e010b91e62ab1a
+    digest: sha256:5926743c7b5d5e03aa56a1eaedb4d5394cd5c20e8186c5fab0c2a0ac9bcbe0bb
   - name: cpar.dev/fluxcd/distroless-fips/image-reflector-controller
     newTag: v1.1.1
     digest: sha256:7ba01913c67b2cc144281d17c29a372a557a02797898a35ad61d1d3e5650228a
@@ -19,4 +19,4 @@ images:
     digest: sha256:63b005dfbf24901b34a7e42aaac9e97c70fdd630a1ad85a46839558be9fe1db9
   - name: cpar.dev/fluxcd/distroless-fips/source-watcher
     newTag: v2.1.1
-    digest: sha256:11a923d19b0535f30783ae052bcf126b01b846f5c2a6f23fcaef0659f2e9ff4a
+    digest: sha256:1274fcec16dfdac1fb5770e47c10d0f667710f49ddd38ef373158caaffc41e4b
