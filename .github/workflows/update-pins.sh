@@ -197,6 +197,9 @@ case "$TARGET" in
     GHCR_BASE="ghcr.io/controlplaneio"
     CPAR_BASE="cpar.dev/openbao"
     VARIANTS=(ubi ubi-fips distroless distroless-fips)
+    # Variants published only to CPAR. The HSM variant exists for the server
+    # image only; it has no deprecated GHCR mirror and no auxiliary images.
+    CPAR_ONLY_VARIANTS=(distroless-hsm-fips)
 
     variants_to_update=("${VARIANTS[@]}")
     if [ -d "${GHCR_IMAGES_DIR}/${VERSION}" ]; then
@@ -233,6 +236,16 @@ case "$TARGET" in
         < <(printf '%s\n' "${ghcr_refs[@]}")
       write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" \
         < <(printf '%s\n' "${cpar_refs[@]}")
+    done
+
+    for variant in "${CPAR_ONLY_VARIANTS[@]}"; do
+      cpar_ref="${CPAR_BASE}/${variant}/openbao:${VERSION}"
+      if ! resolve_digest "$cpar_ref" >/dev/null 2>&1; then
+        echo "skip ${variant} for ${VERSION}: ${cpar_ref} not found" >&2
+        continue
+      fi
+      write_pin_file "${CPAR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" \
+        < <(printf '%s\n' "$cpar_ref")
     done
 
     cpar_chart_repo="cpar.dev/openbao/charts/openbao"
