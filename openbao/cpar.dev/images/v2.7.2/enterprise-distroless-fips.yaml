@@ -11,3 +11,6 @@ images:
   - name: cpar.dev/openbao/distroless-fips/openbao-snapshot-agent
     newTag: v0.4.5
     digest: sha256:139f6527eab6b68805acc96a7880db590c174ad915ad97ccba6f80288293d583
+  - name: cpar.dev/openbao/distroless-fips/openbao-plugin-kms-pkcs11
+    newTag: kms-pkcs11-v0.3.0
+    digest: sha256:a3f8266575e901515f96bf7706d2e30f265acce958a57a9e571c9e029274c3a4
