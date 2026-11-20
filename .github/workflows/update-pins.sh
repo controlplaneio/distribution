@@ -33,6 +33,7 @@ SPIRE_CRDS_CHART_VERSION="${SPIRE_CRDS_CHART_VERSION:-}"
 OPENBAO_K8S_VERSION="${OPENBAO_K8S_VERSION:-}"
 OPENBAO_CSI_PROVIDER_VERSION="${OPENBAO_CSI_PROVIDER_VERSION:-}"
 OPENBAO_SNAPSHOT_AGENT_VERSION="${OPENBAO_SNAPSHOT_AGENT_VERSION:-}"
+OPENBAO_PLUGIN_KMS_PKCS11_VERSION="${OPENBAO_PLUGIN_KMS_PKCS11_VERSION:-}"
 INCLUDE_OPENBAO_COMPONENTS="${INCLUDE_OPENBAO_COMPONENTS:-false}"
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
@@ -218,6 +219,7 @@ case "$TARGET" in
       [ -n "$OPENBAO_K8S_VERSION" ] || { echo "OPENBAO_K8S_VERSION is required when pinning OpenBao components" >&2; exit 1; }
       [ -n "$OPENBAO_CSI_PROVIDER_VERSION" ] || { echo "OPENBAO_CSI_PROVIDER_VERSION is required when pinning OpenBao components" >&2; exit 1; }
       [ -n "$OPENBAO_SNAPSHOT_AGENT_VERSION" ] || { echo "OPENBAO_SNAPSHOT_AGENT_VERSION is required when pinning OpenBao components" >&2; exit 1; }
+      [ -n "$OPENBAO_PLUGIN_KMS_PKCS11_VERSION" ] || { echo "OPENBAO_PLUGIN_KMS_PKCS11_VERSION is required when pinning OpenBao components" >&2; exit 1; }
     fi
 
     for variant in "${variants_to_update[@]}"; do
@@ -231,6 +233,9 @@ case "$TARGET" in
           "${CPAR_BASE}/${variant}/openbao-csi-provider:${OPENBAO_CSI_PROVIDER_VERSION}"
           "${CPAR_BASE}/${variant}/openbao-snapshot-agent:${OPENBAO_SNAPSHOT_AGENT_VERSION}"
         )
+        if [ "$variant" = "distroless-fips" ]; then
+          cpar_refs+=("${CPAR_BASE}/${variant}/openbao-plugin-kms-pkcs11:${OPENBAO_PLUGIN_KMS_PKCS11_VERSION}")
+        fi
       fi
       write_pin_file "${GHCR_IMAGES_DIR}/${VERSION}/enterprise-${variant}.yaml" \
         < <(printf '%s\n' "${ghcr_refs[@]}")

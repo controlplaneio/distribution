@@ -18,6 +18,7 @@ Upstream changelog: [openbao/openbao v2.7.2](https://github.com/openbao/openbao/
 | `cpar.dev/openbao/distroless/openbao`          | v2.7.2  | amd64 / arm64 |
 | `cpar.dev/openbao/distroless-fips/openbao`     | v2.7.2  | amd64 / arm64 |
 | `cpar.dev/openbao/distroless-hsm-fips/openbao` | v2.7.2  | amd64 / arm64 |
+| `cpar.dev/openbao/distroless-fips/openbao-plugin-kms-pkcs11` | kms-pkcs11-v0.3.0 | amd64 / arm64 |
 
 ### Helm Charts
 

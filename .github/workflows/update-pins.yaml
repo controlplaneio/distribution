@@ -37,6 +37,11 @@ on:
         required: false
         type: string
         default: v0.4.5
+      openbao_plugin_kms_pkcs11_version:
+        description: 'OpenBao PKCS#11 KMS plugin image version'
+        required: false
+        type: string
+        default: kms-pkcs11-v0.3.0
       spire_controller_manager_version:
         description: 'SPIRE controller manager image version (required for spire)'
         required: false
@@ -183,6 +188,7 @@ jobs:
           OPENBAO_K8S_VERSION: ${{ inputs.openbao_k8s_version }}
           OPENBAO_CSI_PROVIDER_VERSION: ${{ inputs.openbao_csi_provider_version }}
           OPENBAO_SNAPSHOT_AGENT_VERSION: ${{ inputs.openbao_snapshot_agent_version }}
+          OPENBAO_PLUGIN_KMS_PKCS11_VERSION: ${{ inputs.openbao_plugin_kms_pkcs11_version }}
           INCLUDE_OPENBAO_COMPONENTS: ${{ matrix.entry.include_components }}
         run: .github/workflows/update-pins.sh
       - name: Create Pull Request
