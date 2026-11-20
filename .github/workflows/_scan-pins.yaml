@@ -12,6 +12,11 @@ on:
         description: 'newline-separated pin file paths or globs; %VERSION% is replaced'
         required: true
         type: string
+      image-filter:
+        description: 'optional extended regex; only scan images matching it'
+        required: false
+        type: string
+        default: ''
       version-dir:
         description: 'directory containing version directories'
         required: true
@@ -82,6 +87,7 @@ jobs:
         shell: bash
         env:
           PINS: ${{ inputs.pins }}
+          IMAGE_FILTER: ${{ inputs.image-filter }}
           VERSION_DIR: ${{ inputs.version-dir }}
           ONLY_VERSION: ${{ inputs.version }}
           MINOR_COUNT: ${{ inputs.minor-count }}
@@ -151,6 +157,9 @@ jobs:
                 [ -f "$file" ] || continue
                 while IFS= read -r image; do
                   [ -n "$image" ] || continue
+                  if [ -n "$IMAGE_FILTER" ] && ! printf '%s\n' "$image" | grep -Eq -- "$IMAGE_FILTER"; then
+                    continue
+                  fi
                   targets="${targets}${image}|${version}|${label}"$'\n'
                 done < <(awk '
                   /^[[:space:]]*- name:/ { name=$3 }
