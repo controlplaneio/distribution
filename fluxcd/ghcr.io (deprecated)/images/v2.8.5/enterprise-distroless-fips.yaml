@@ -19,4 +19,4 @@ images:
     digest: sha256:7fd81a7043b522300e24bbd0647f02e39f939982a33e49af8105b6e8e59ea72c
   - name: ghcr.io/controlplaneio-fluxcd/distroless-fips/source-watcher
     newTag: v2.1.1
-    digest: sha256:11a923d19b0535f30783ae052bcf126b01b846f5c2a6f23fcaef0659f2e9ff4a
+    digest: sha256:1274fcec16dfdac1fb5770e47c10d0f667710f49ddd38ef373158caaffc41e4b
