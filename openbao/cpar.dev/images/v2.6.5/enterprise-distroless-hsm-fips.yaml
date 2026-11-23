@@ -1,4 +1,4 @@
 images:
   - name: cpar.dev/openbao/distroless-hsm-fips/openbao
     newTag: v2.6.5
-    digest: sha256:fb8bc3fd930b6cfc890c52c93296b3ddab27ef9761f195b826bd351a492ede90
+    digest: sha256:674f42dfa7f3d417bdd640ddfeb63d2d69b7410791836b723a80810f430ac470
