@@ -5,7 +5,26 @@ description: ControlPlane Enterprise Distribution for OpenBao v2.7
 
 # Enterprise Distribution for OpenBao v2.7.x
 
-Upstream changelog: [openbao/openbao v2.7.2](https://github.com/openbao/openbao/releases/tag/v2.7.2)
+Upstream changelog: [openbao/openbao v2.7.3](https://github.com/openbao/openbao/releases/tag/v2.7.3)
+
+## v2.7.3
+
+### Container Images
+
+| Image                                          | Version | Architectures |
+|:-----------------------------------------------|---------|---------------|
+| `cpar.dev/openbao/ubi/openbao`                 | v2.7.3  | amd64 / arm64 |
+| `cpar.dev/openbao/ubi-fips/openbao`            | v2.7.3  | amd64 / arm64 |
+| `cpar.dev/openbao/distroless/openbao`          | v2.7.3  | amd64 / arm64 |
+| `cpar.dev/openbao/distroless-fips/openbao`     | v2.7.3  | amd64 / arm64 |
+| `cpar.dev/openbao/distroless-hsm-fips/openbao` | v2.7.3  | amd64 / arm64 |
+| `cpar.dev/openbao/distroless-fips/openbao-plugin-kms-pkcs11` | kms-pkcs11-v0.3.0 | amd64 / arm64 |
+
+### Helm Charts
+
+| Chart                                  | Version |
+|:---------------------------------------|---------|
+| `cpar.dev/openbao/charts/openbao`      | 0.30.8  |
 
 ## v2.7.2
 
