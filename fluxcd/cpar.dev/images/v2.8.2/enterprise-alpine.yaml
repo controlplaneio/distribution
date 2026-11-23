@@ -19,4 +19,4 @@ images:
     digest: sha256:a3cb0f5b5df1d79169a4fbab5fae1f093ae6d1651f10c44a32d734c8da6b659e
   - name: cpar.dev/fluxcd/alpine/source-watcher
     newTag: v2.1.1
-    digest: sha256:dd0f6b046158b3245bcfecef2f8d5dea50e9bd81f000525402be8e7880b731d9
+    digest: sha256:6c243cf8107c7acae7b9ec5c2ec12b1d83de709832e756e26601d3c55392dd3b
