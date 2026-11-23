@@ -1,0 +1,4 @@
+images:
+  - name: cpar.dev/openbao/ubi/openbao
+    newTag: v2.6.6
+    digest: sha256:87b0544d9e2df1b210cc8f77810a59775d6b0bd434ffbee204e977179d56ebf4
