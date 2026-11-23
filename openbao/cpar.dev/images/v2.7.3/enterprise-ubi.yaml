@@ -2,3 +2,12 @@ images:
   - name: cpar.dev/openbao/ubi/openbao
     newTag: v2.7.3
     digest: sha256:2cf062bd9819ac89de89b88c8c1c782d4867240ef9bb023cc93f7d594c8a6138
+  - name: cpar.dev/openbao/ubi/openbao-k8s
+    newTag: v1.4.0
+    digest: sha256:ab093c65f1c64e62781613f6197db5ff12ae32ec2caae198719a45bd339a4720
+  - name: cpar.dev/openbao/ubi/openbao-csi-provider
+    newTag: v2.0.3
+    digest: sha256:65b21d34cdce3eddefe49c368d1c46c1de7c9af8ea64a2c1c3e0aba793f1037a
+  - name: cpar.dev/openbao/ubi/openbao-snapshot-agent
+    newTag: v0.4.5
+    digest: sha256:072c7e25e4db4e38b5fac6c6903e292fb9521f2f15eec2c822718623bcc880b7
