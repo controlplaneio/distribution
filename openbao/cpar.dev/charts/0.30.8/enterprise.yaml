@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: openbao
+spec:
+  url: oci://cpar.dev/openbao/charts/openbao
+  ref:
+    tag: 0.30.8
+    digest: sha256:a8bcab5b202339b34537cf812883f767c6e4c9d709222cc70fca9ae0babcb80a
