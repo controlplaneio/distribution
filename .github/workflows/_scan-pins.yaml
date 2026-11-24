@@ -40,7 +40,7 @@ on:
         description: 'vulnerability severity'
         required: false
         type: string
-        default: 'CRITICAL,HIGH,MEDIUM,LOW'
+        default: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
       check-scan-error:
         description: 'fail the job when the scan finds vulnerabilities'
         required: false
