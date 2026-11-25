@@ -16,8 +16,8 @@
 #   OPENBAO_K8S_VERSION - OpenBao injector image tag.
 #   OPENBAO_CSI_PROVIDER_VERSION - OpenBao CSI provider image tag.
 #   OPENBAO_SNAPSHOT_AGENT_VERSION - OpenBao snapshot agent image tag.
-#   INCLUDE_OPENBAO_COMPONENTS - add auxiliary OpenBao images to the latest
-#                                pinned OpenBao version only.
+#   INCLUDE_OPENBAO_COMPONENTS - add auxiliary OpenBao images for the selected
+#                                version(s); the PKCS#11 plugin is 2.7+ only.
 #
 # The workflow matrix handles multi-version backfills, so this script always
 # operates on exactly one image version.
@@ -26,6 +26,7 @@ set -euo pipefail
 
 TARGET="${TARGET:?TARGET is required}"
 VERSION="${VERSION:?VERSION is required}"
+VERSION_MINOR="$(echo "${VERSION#v}" | cut -d. -f2)"
 CHART_VERSION="${CHART_VERSION:-}"
 SPIRE_CONTROLLER_MANAGER_VERSION="${SPIRE_CONTROLLER_MANAGER_VERSION:-}"
 SPIFFE_CSI_DRIVER_VERSION="${SPIFFE_CSI_DRIVER_VERSION:-}"
@@ -219,7 +220,9 @@ case "$TARGET" in
       [ -n "$OPENBAO_K8S_VERSION" ] || { echo "OPENBAO_K8S_VERSION is required when pinning OpenBao components" >&2; exit 1; }
       [ -n "$OPENBAO_CSI_PROVIDER_VERSION" ] || { echo "OPENBAO_CSI_PROVIDER_VERSION is required when pinning OpenBao components" >&2; exit 1; }
       [ -n "$OPENBAO_SNAPSHOT_AGENT_VERSION" ] || { echo "OPENBAO_SNAPSHOT_AGENT_VERSION is required when pinning OpenBao components" >&2; exit 1; }
-      [ -n "$OPENBAO_PLUGIN_KMS_PKCS11_VERSION" ] || { echo "OPENBAO_PLUGIN_KMS_PKCS11_VERSION is required when pinning OpenBao components" >&2; exit 1; }
+      if [ "$VERSION_MINOR" -ge 7 ]; then
+        [ -n "$OPENBAO_PLUGIN_KMS_PKCS11_VERSION" ] || { echo "OPENBAO_PLUGIN_KMS_PKCS11_VERSION is required when pinning OpenBao components" >&2; exit 1; }
+      fi
     fi
 
     for variant in "${variants_to_update[@]}"; do
@@ -233,7 +236,7 @@ case "$TARGET" in
           "${CPAR_BASE}/${variant}/openbao-csi-provider:${OPENBAO_CSI_PROVIDER_VERSION}"
           "${CPAR_BASE}/${variant}/openbao-snapshot-agent:${OPENBAO_SNAPSHOT_AGENT_VERSION}"
         )
-        if [ "$variant" = "distroless-fips" ]; then
+        if [ "$variant" = "distroless-fips" ] && [ "$VERSION_MINOR" -ge 7 ]; then
           cpar_refs+=("${CPAR_BASE}/${variant}/openbao-plugin-kms-pkcs11:${OPENBAO_PLUGIN_KMS_PKCS11_VERSION}")
         fi
       fi

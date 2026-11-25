@@ -42,6 +42,11 @@ on:
         required: false
         type: string
         default: kms-pkcs11-v0.3.0
+      include_openbao_components:
+        description: 'Include OpenBao auxiliary images for every selected version (not just latest)'
+        required: false
+        type: boolean
+        default: false
       spire_controller_manager_version:
         description: 'SPIRE controller manager image version (required for spire)'
         required: false
@@ -75,6 +80,7 @@ jobs:
           TARGET: ${{ inputs.target }}
           VERSION: ${{ inputs.version }}
           CHART_VERSION: ${{ inputs.chart_version }}
+          INCLUDE_OPENBAO_COMPONENTS: ${{ inputs.include_openbao_components }}
         run: |
           set -euo pipefail
           case "$TARGET" in
@@ -135,7 +141,8 @@ jobs:
                 ;;
             esac
             include_components=false
-            if [ "$TARGET" = "openbao" ] && [ "$v" = "$latest_pinned" ]; then
+            if [ "$TARGET" = "openbao" ] &&
+               { [ "$v" = "$latest_pinned" ] || [ "$INCLUDE_OPENBAO_COMPONENTS" = "true" ]; }; then
               include_components=true
             fi
             entries="$(jq -c --arg v "$v" --arg c "$chart" --argjson components "$include_components" \
