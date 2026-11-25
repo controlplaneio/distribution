@@ -1,4 +1,4 @@
 images:
   - name: ghcr.io/controlplaneio/ubi-fips/openbao
     newTag: v2.6.6
-    digest: sha256:8fc939ae0937b35670ac09ede614b805df38ae1c705b1512a198eba1f8ad3aaf
+    digest: sha256:6beaca174e6eb9c61c4f1d35fcb5cfbd637e3cec07fc1b10d36c27678f5bce94

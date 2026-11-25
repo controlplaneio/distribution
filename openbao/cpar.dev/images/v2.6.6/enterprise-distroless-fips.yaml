@@ -1,4 +1,13 @@
 images:
   - name: cpar.dev/openbao/distroless-fips/openbao
     newTag: v2.6.6
-    digest: sha256:4cbf50c0d17bbceff7b469e4843a8c8c0c86cb0f5d219bdf40af4ef1105843a1
+    digest: sha256:2dca996c8fd40cbd03b264abb261c0d159864435ec4ba83e397def44a5c68f6e
+  - name: cpar.dev/openbao/distroless-fips/openbao-k8s
+    newTag: v1.4.0
+    digest: sha256:c5b8705c02050a2da8390ff595b491bd09cbbfd06445355498484dba00d38456
+  - name: cpar.dev/openbao/distroless-fips/openbao-csi-provider
+    newTag: v2.0.3
+    digest: sha256:6355af7b61063a7b6c3a38b2ce6f5ee058ea602b5e6f19cb126f4fafa14d0d92
+  - name: cpar.dev/openbao/distroless-fips/openbao-snapshot-agent
+    newTag: v0.4.5
+    digest: sha256:307238dae4bfe43fa97a821d922c1ab6cf821644f2613027be30a5c0369dfc4f
