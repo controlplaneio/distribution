@@ -1,16 +1,16 @@
 images:
   - name: cpar.dev/openbao/distroless-fips/openbao
     newTag: v2.7.3
-    digest: sha256:e62746362fd535e796827b734520e93f80e8b19b12a7356b625aa0559aeaa238
+    digest: sha256:6ca8dadd6cfeaa396befa9661050091a64945310854d88072848a8c453a83c83
   - name: cpar.dev/openbao/distroless-fips/openbao-k8s
     newTag: v1.4.0
-    digest: sha256:140bfe8b74383180f7c7d620d6cb36175c85bfd89ed171e28706e0182bd56087
+    digest: sha256:c5b8705c02050a2da8390ff595b491bd09cbbfd06445355498484dba00d38456
   - name: cpar.dev/openbao/distroless-fips/openbao-csi-provider
     newTag: v2.0.3
-    digest: sha256:949aa0ad7c75b2dfde5f97937e77893c5e143a429c5d0dcdda684f91119d6243
+    digest: sha256:6355af7b61063a7b6c3a38b2ce6f5ee058ea602b5e6f19cb126f4fafa14d0d92
   - name: cpar.dev/openbao/distroless-fips/openbao-snapshot-agent
     newTag: v0.4.5
-    digest: sha256:9e903cccce30edfee10e691ad8de96f2d80532dbfece02584b647cd5ec5cdc89
+    digest: sha256:307238dae4bfe43fa97a821d922c1ab6cf821644f2613027be30a5c0369dfc4f
   - name: cpar.dev/openbao/distroless-fips/openbao-plugin-kms-pkcs11
     newTag: kms-pkcs11-v0.3.0
-    digest: sha256:a3f8266575e901515f96bf7706d2e30f265acce958a57a9e571c9e029274c3a4
+    digest: sha256:649b003a0f1896f48e3206e797556edc8d58dc8379069ce42175458f6724c3c0
